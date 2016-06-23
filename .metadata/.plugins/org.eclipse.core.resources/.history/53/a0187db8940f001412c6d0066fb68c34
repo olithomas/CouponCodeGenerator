@@ -1,0 +1,222 @@
+package com.codefarm.interaction;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Observable;
+
+import com.codefarm.engine.Code;
+
+public class FrontEnd extends Observable {
+	
+	private ObjectIdGenerator _idFactory;
+	private String _frontEndName;
+	private String _myWindowIP;
+	private Timestamp _created;
+	private Hashtable<Integer, CodeSpace> _codeSpaces;
+	private Hashtable<Integer, User> _users;
+	private Hashtable<String, Code> _codes;
+	private int _frontEndId;
+	private boolean _registered;
+
+	public boolean isRegistered() {
+		return _registered;
+	}
+
+	public void setRegistered(boolean registered) {
+		_registered = registered;
+	}
+
+	public FrontEnd(String frontEndName) {
+		_registered = false;
+		_frontEndName = frontEndName;
+		_created = new Timestamp(System.currentTimeMillis());
+		_idFactory = new ObjectIdGenerator();
+		_frontEndId = _idFactory.nextId();
+		_codeSpaces = new Hashtable<Integer, CodeSpace>();
+		_users = new Hashtable<Integer, User>();
+		_codes = new Hashtable<String, Code>();
+	}
+
+	public int addCodeSpace(int codeLen, char[] excludes, String codeSpaceName)
+			throws IllegalArgumentException {
+		int newCodeSpaceId = _idFactory.nextId();
+		CodeSpace newCodeSpace;
+		try {
+			newCodeSpace = new CodeSpace(codeLen, excludes, newCodeSpaceId, codeSpaceName);
+		} catch (IllegalArgumentException e) {
+			throw e;
+		}
+		_codeSpaces.put(newCodeSpaceId, newCodeSpace);
+		this.setChanged();
+		this.notifyObservers();
+		return newCodeSpaceId;
+	}
+	
+	public int addCodeSpace(int codeLen, String codeSpaceName)
+			throws IllegalArgumentException {
+		int newCodeSpaceId = _idFactory.nextId();
+		CodeSpace newCodeSpace;
+		try {
+			newCodeSpace = new CodeSpace(codeLen, newCodeSpaceId, codeSpaceName);
+		} catch (IllegalArgumentException e) {
+			throw e;
+		}
+		_codeSpaces.put(newCodeSpaceId, newCodeSpace);
+		this.setChanged();
+		this.notifyObservers();
+		return newCodeSpaceId;
+	}
+
+	public int addUser(String[] userData) throws IllegalArgumentException {
+		int newUserId = _idFactory.nextId();
+		User newUser;
+		newUser = new User(newUserId, userData);
+		_users.put(newUserId, newUser);
+		this.setChanged();
+		this.notifyObservers();
+		return newUserId;
+	}
+	
+	public ArrayList<Code> addCodes(int n, int codeSpaceId)
+			throws IllegalArgumentException {
+		CodeSpace cs = _codeSpaces.get(codeSpaceId);
+		if (cs == null) {
+			throw new IllegalArgumentException("Code Space does not exist.");
+		}
+		ArrayList<Code> returnCodes = cs.generateCodes(n, _frontEndId, Code.FRONTEND_TYPE);
+		for (Code code : returnCodes) _codes.put(code.getStringVal(), code);
+		this.setChanged();
+		this.notifyObservers();
+		return returnCodes;
+	}
+	
+	public ArrayList<Code> addCodes(int n, int codeSpaceId, int userId) 
+			throws IllegalArgumentException {
+		User user = _users.get(userId);
+		CodeSpace cs = _codeSpaces.get(codeSpaceId);
+		if (user == null || cs == null) {
+			throw new IllegalArgumentException("User or Code Space does not exist.");
+		}
+		ArrayList<Code> returnCodes = cs.generateCodes(n, userId, Code.USER_TYPE);
+		for (Code code : returnCodes) _codes.put(code.getStringVal(), code);
+		this.setChanged();
+		this.notifyObservers();
+		return returnCodes;
+	}
+	
+	public Code getCode (String code)
+			throws IllegalArgumentException {
+		Code returnCode;
+		if ((returnCode = _codes.get(code)) == null) {
+			throw new IllegalArgumentException("Code does not exist.");
+		}
+		return returnCode;
+	}
+	
+	public ArrayList<Code> getCodesByUserId(int userId) 
+			throws IllegalArgumentException {
+		ArrayList<Code> returnCodes = new ArrayList<Code>();
+		User user;
+		if ((user = _users.get(userId)) == null) {
+			throw new IllegalArgumentException("User does not exist.");
+		}
+		for (Map.Entry<String, Code> entry : _codes.entrySet()) {
+			Code thisCode = entry.getValue();
+			if (thisCode.getOwnerId() == userId && thisCode.getOwnerType() == Code.USER_TYPE) {
+				returnCodes.add(thisCode);
+			}
+		}
+		return returnCodes;
+	}
+	
+	public ArrayList<Code> getCodesByCodeSpaceId(int codeSpaceId) 
+			throws IllegalArgumentException {
+		ArrayList<Code> returnCodes = new ArrayList<Code>();
+		CodeSpace cs;
+		if ((cs = _codeSpaces.get(codeSpaceId)) == null) {
+			throw new IllegalArgumentException("Code Space does not exist.");
+		}
+		for (Map.Entry<String, Code> entry : _codes.entrySet()) {
+			Code thisCode = entry.getValue();
+			if (thisCode.getGeneratorId() == codeSpaceId) {
+				returnCodes.add(thisCode);
+			}
+		}
+		return returnCodes;
+	}
+	
+	public void setCodeData(int userId, Code code, String newData)
+			throws IllegalArgumentException {
+		if (code.getOwnerId() != userId) {
+			throw new IllegalArgumentException("User does not own this code.");
+		}
+		code.setCodeData(newData);
+	}
+	
+	public CodeSpace getCodeSpace(int codeSpaceId)
+			throws IllegalArgumentException {
+		CodeSpace cs;
+		if ((cs = _codeSpaces.get(codeSpaceId)) == null) {
+			throw new IllegalArgumentException("Code Space does not exist.");
+		}
+		return cs;
+	}
+	
+	public ArrayList<CodeSpace> getCodeSpaces() {
+		return new ArrayList<CodeSpace>(_codeSpaces.values());
+	}
+	
+	public User getUser(int userId)
+			throws IllegalArgumentException {
+		User user;
+		if ((user = _users.get(userId)) == null) {
+			throw new IllegalArgumentException("User does not exist.");
+		}
+		return user;
+	}
+	
+	public ArrayList<User> getUsers() {
+		return new ArrayList<User>(_users.values());
+	}
+	
+	public void removeUser(int userId) {
+		_users.remove(userId);
+	}
+	
+	public String getName() {
+		return _frontEndName;
+	}
+
+	public int getFrontEndId() {
+		return _frontEndId;
+	}
+	
+	public Timestamp getCreated() {
+		return _created;
+	}
+	
+	public int getUserCount() {
+		return _users.size();
+	}
+	
+	public int getCodeSpacesCount() {
+		return _codeSpaces.size();
+	}
+	
+	public int getCodeCount() {
+		return _codes.size();
+	}
+
+	public String getMyWindowIP() {
+		return _myWindowIP;
+	}
+
+	public void setMyWindowIP(String frontEndIP) {
+		this._myWindowIP = frontEndIP;
+		this.setChanged();
+		this.notifyObservers();
+	}
+}

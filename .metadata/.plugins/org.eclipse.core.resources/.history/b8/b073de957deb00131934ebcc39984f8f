@@ -1,0 +1,91 @@
+package engine;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.math.BigInteger;
+
+public class SequenceGenerator {
+	/*
+	 * Constants to limit the number of permutations generated in one go: 
+	 */
+	private static final int MIN_PERM = 250;
+	private static final int MAX_PERM = 10000;
+	
+	/* 
+	 * Instance variables:
+	 */
+	private BigInteger _x; //  current x value in code space (obtained from DB by DBController and passed in)
+	private BigInteger _codeSpace; // Size of the code space (calculated by CodeGenerator and passed in)
+	private BigInteger _P; // Prime number limit for quadratic residue algorithm
+	private BigInteger _halfP; // Convenience instance of BigInteger for quadratic residue algorithm
+	private Random _randomSource;
+	
+	// Constructor with external random source:
+	public SequenceGenerator(BigInteger x, BigInteger permutations, Random randomSource) {
+		PrimeManager pManager = new PrimeManager();
+		_x = x;
+		_codeSpace = permutations;
+		_P = pManager.getBiggestPrime(_codeSpace);
+		_halfP = _P.divide(BigInteger.valueOf(2));
+		_randomSource = randomSource;
+	}
+	
+	// Constructor with no external random source specified (assigned default Random() internally):
+	public SequenceGenerator(BigInteger x, BigInteger codeSpace) {
+		PrimeManager pManager = new PrimeManager();
+		_x = x;
+		_codeSpace = codeSpace;
+		_P = pManager.getBiggestPrime(_codeSpace);
+		_halfP = _P.divide(BigInteger.valueOf(2));
+		_randomSource = new Random();
+	}
+	
+	public ArrayList<BigInteger> getShuffledBigIntList(int perm) {
+		/*
+		 * perm is the number of random unique integers to generate in one go.
+		 * The function forces the returned permutation count between MIN_PERM and MAX_PERM
+		 * The MIN_PERM value exists to keep the shuffled ArrayList sufficiently large to ensure
+		 * good random distribution of the permutations.
+		 * The MAX_PERM value sets a limit on the number of permutations to stop large values
+		 * passed in error from killing the software!
+		 */
+		if (perm < SequenceGenerator.MIN_PERM) perm = SequenceGenerator.MIN_PERM;
+		if (perm > SequenceGenerator.MAX_PERM) perm = SequenceGenerator.MAX_PERM;
+		ArrayList<BigInteger> shuffledList = new ArrayList<BigInteger>();
+		BigInteger newPerm;
+		
+		for (int i = 0; i < perm; i++) {
+			// Generate a new permutation:
+			newPerm = generateRandomPermutation(_x);
+			// Add it to the list:
+			shuffledList.add(newPerm);
+			// And then increment x:
+			_x = _x.add(BigInteger.ONE);
+		}
+		/* 
+		 * Now randomly shuffle the list before returning.
+		 * the Collections.shuffle funtion is used which is basically a Fisher-Yates implementation
+		 * Constructor option exists to provide external random source.
+		 * If none is provided a default Random() is assigned internally.
+		 */
+		Collections.shuffle(shuffledList, _randomSource);
+		return shuffledList;
+	}
+
+	private BigInteger generateRandomPermutation(BigInteger x) {
+		/* 
+		 * x	=   An integer that satisfies 0 < x <= (p/2) where p is the primary seed
+		 * p	=	A prime number as defined in the class constant P (see above)
+		 * r	=	the remainder (quadratic residue) of the squae of x (mod P)
+		 */
+		BigInteger r;
+		r = x.multiply(x).mod(_P);
+		if (x.compareTo(_halfP) <= 0) {
+			return r;
+		} else {
+			return _P.subtract(r);
+		}
+	}
+	
+}

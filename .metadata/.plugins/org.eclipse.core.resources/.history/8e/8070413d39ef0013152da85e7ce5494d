@@ -1,0 +1,52 @@
+package engine;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+
+public class CodeRequest {
+	/*
+	 * Constants to limit the number of permutations generated in one go: 
+	 */
+	public static final int MIN_PERM = 250;
+	public static final int MAX_PERM = 10000;
+	
+	private BigInteger _x;
+	private CodeSpace _cs;
+	private int _n;
+	private ArrayList<Code>	_codes;
+	
+	public ArrayList<Code> getCodes() { return _codes; }
+
+	public CodeRequest(BigInteger x, CodeSpace cs, int n) {
+		_cs = cs;
+		/*
+		 * n is the number of random unique integers to generate in one go.
+		 * The function forces the returned permutation count between MIN_PERM and MAX_PERM
+		 * The MIN_PERM value exists to keep the shuffled ArrayList sufficiently large to ensure
+		 * good random distribution of the permutations.
+		 * The MAX_PERM value sets a limit on the number of permutations to stop large values
+		 * passed in error from killing the software!
+		 */	
+		if (n < CodeRequest.MIN_PERM) n = CodeRequest.MIN_PERM;
+		if (n > CodeRequest.MAX_PERM) n = CodeRequest.MAX_PERM;
+		_n = n;
+		_x = x;
+	}
+	
+	// Generate n random integers from x using codespace:
+	public void genCodes() {
+		BigInteger intVal;
+		String stringVal;
+		ArrayList<Code> codes = new ArrayList<Code>();
+		BigInteger xLimit = _x.add(BigInteger.valueOf(_n));
+		for (; _x.compareTo(xLimit) < 0; _x = _x.add(BigInteger.ONE)) {
+			intVal = CodeFactory.getRandomBigInt(_cs, _x);
+			stringVal = _cs.getCodeString(intVal);
+			codes.add(new Code(intVal, stringVal, _x));
+		}
+		Collections.shuffle(codes);
+		_codes = codes;
+	}
+
+}

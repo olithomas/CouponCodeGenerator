@@ -1,0 +1,10 @@
+1403723637152	Rename package 'engine'
+1403725059173	Rename type 'TenCharReadableCodeFormat'
+1403725672442	Delete element
+1403725679634	Delete element
+1403728156654	Rename field '_codeString'
+1403728169227	Rename method 'getCodeString'
+1403729063967	Rename method 'getCharSetSize'
+1403731400041	Rename local variable 'test'
+1403732055492	Rename local variable 'returnCharList'
+1403732310661	Rename type 'CodeSpace'

@@ -1,0 +1,9 @@
+package engine;
+
+public class CodeManager {
+
+	public CodeManager() {
+		// TODO Auto-generated constructor stub
+	}
+
+}

@@ -1,0 +1,192 @@
+package com.huuta.examplefrontend;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
+import com.codefarm.interaction.FrontEndContext;
+
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+
+
+class AddUserDialog extends JDialog {
+		/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+		private JTextField _firstNameText;
+		private JTextField _secondNameText;
+		private JTextField _emailText;
+		private FrontEndContext _frontEnd;
+		private JLabel _lblAdded;
+		private boolean _isNewEntry;
+
+		public AddUserDialog(FrontEndContext frontEnd) {
+			_isNewEntry = false;
+			_frontEnd = frontEnd;
+			initialise();
+		}
+		
+		private void addUser() {
+			if (_firstNameText.getText().isEmpty() || _secondNameText.getText().isEmpty() || _emailText.getText().isEmpty()) {
+				JOptionPane.showMessageDialog(this, "All fields must be specified.", "Add User", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			String[] userData = new String[] {
+					_firstNameText.getText(),
+					_secondNameText.getText(),
+					_emailText.getText()
+			};
+			_frontEnd.addUser(userData);
+			_lblAdded.setVisible(true);
+			_isNewEntry = true;
+			_firstNameText.setText("");
+			_secondNameText.setText("");
+			_emailText.setText("");
+			_firstNameText.requestFocus();
+		}
+		
+		private void initialise() {
+			setResizable(false);
+			setTitle("Add User(s)");
+			setModal(true);
+			setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			JPanel content = new JPanel();
+			content.setBorder(new EmptyBorder(5, 5, 5, 5));
+			
+			ActionListener btnListener = new DialogActionListener();
+			
+			JButton btnDone = new JButton("Done");
+			btnDone.addActionListener(btnListener);
+			this.setContentPane(content);
+			JButton btnCancel = new JButton("Cancel");
+			btnCancel.addActionListener(btnListener);
+			
+			JLabel lblUserFirstName = new JLabel("User first name:");
+			
+			JLabel lblUserSecondName = new JLabel("User second name:");
+			
+			JLabel lblUserEmailAddress = new JLabel("User email address:");
+			
+			KeyAdapter keyAdapter = new TextBoxListener();
+			
+			_firstNameText = new JTextField();
+			_firstNameText.setColumns(10);
+			_firstNameText.addKeyListener(keyAdapter);
+			
+			_secondNameText = new JTextField();
+			_secondNameText.setColumns(10);
+			_secondNameText.addKeyListener(keyAdapter);
+			
+			_emailText = new JTextField();
+			_emailText.setColumns(10);
+			_emailText.addKeyListener(keyAdapter);
+			
+			JButton btnAdd = new JButton("Add");
+			btnAdd.addActionListener(btnListener);
+			content.getRootPane().setDefaultButton(btnAdd);
+			
+			JLabel lblAddTheUser = new JLabel("Add the user:");
+			
+			_lblAdded = new JLabel("Added!");
+			_lblAdded.setVisible(false);
+			GroupLayout gl_content = new GroupLayout(content);
+			gl_content.setHorizontalGroup(
+				gl_content.createParallelGroup(Alignment.TRAILING)
+					.addGroup(gl_content.createSequentialGroup()
+						.addGroup(gl_content.createParallelGroup(Alignment.TRAILING)
+							.addGroup(gl_content.createSequentialGroup()
+								.addComponent(lblUserFirstName, GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(_firstNameText, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE))
+							.addGroup(gl_content.createSequentialGroup()
+								.addGroup(gl_content.createParallelGroup(Alignment.LEADING)
+									.addComponent(lblUserEmailAddress, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+									.addComponent(lblUserSecondName, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+									.addComponent(lblAddTheUser))
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addGroup(gl_content.createParallelGroup(Alignment.LEADING)
+									.addComponent(_secondNameText, Alignment.TRAILING, 233, 233, 233)
+									.addComponent(_emailText, Alignment.TRAILING, 233, 233, 233)
+									.addGroup(gl_content.createSequentialGroup()
+										.addComponent(btnAdd)
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addComponent(_lblAdded)))))
+						.addGap(14))
+					.addGroup(gl_content.createSequentialGroup()
+						.addContainerGap(251, Short.MAX_VALUE)
+						.addComponent(btnDone)
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addComponent(btnCancel)
+						.addContainerGap())
+			);
+			gl_content.setVerticalGroup(
+				gl_content.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_content.createSequentialGroup()
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(_firstNameText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblUserFirstName, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(_secondNameText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblUserSecondName, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(_emailText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblUserEmailAddress, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_content.createParallelGroup(Alignment.LEADING)
+							.addGroup(gl_content.createSequentialGroup()
+								.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+									.addComponent(btnAdd)
+									.addComponent(_lblAdded))
+								.addPreferredGap(ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+								.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+									.addComponent(btnCancel)
+									.addComponent(btnDone)))
+							.addGroup(gl_content.createSequentialGroup()
+								.addComponent(lblAddTheUser)
+								.addContainerGap())))
+			);
+			content.setLayout(gl_content);
+			pack();
+		}
+		
+		private class DialogActionListener implements ActionListener {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				switch (e.getActionCommand()) {
+				case "Add": 
+					addUser();
+					break;
+				default: // All other buttons just dispose
+					setVisible(false);
+					dispose();
+					break;
+				}
+			}
+		}
+		
+		private class TextBoxListener extends KeyAdapter {
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+				if (_isNewEntry) {
+					_lblAdded.setVisible(false);
+					_isNewEntry = false;
+				}
+			}
+		}
+	}

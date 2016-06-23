@@ -1,0 +1,76 @@
+package engine;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+	
+	private BigInteger _x;
+	
+	private class Option {
+	     String flag, opt;
+	     public Option(String flag, String opt) { this.flag = flag; this.opt = opt; }
+	}
+	
+	// Temp code for command line parser during dev:
+	private List<Option> _optsList;
+	private List<String> _argsList;
+	private List<String> _doubleOptsList;
+	
+	// Public accessor methods:
+	public BigInteger getX() { return _x; }
+	
+	// Convenience methods for option parser:
+	public void addNewOption(String flag, String opt) { this._optsList.add(new Option(flag, opt)); }
+	public void addNewArg(String arg) { this._argsList.add(arg); }
+	public void addDoubleOpt(String dOpt) { this._doubleOptsList.add(dOpt); }
+	
+	static public void main(String[] args) {
+		Main cli = new Main();
+
+	    for (int i = 0; i < args.length; i++) {
+	        switch (args[i].charAt(0)) {
+	        case '-':
+	            if (args[i].length() < 2)
+	                throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	            if (args[i].charAt(1) == '-') {
+	                if (args[i].length() < 3)
+	                    throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	                // --opt
+	                cli.addDoubleOpt(args[i].substring(2, args[i].length()));
+	            } else {
+	                if (args.length-1 == i)
+	                    throw new IllegalArgumentException("Expected arg after: "+args[i]);
+	                // -opt
+	                cli.addNewOption(args[i], args[i+1]);
+	                i++;
+	            }
+	            break;
+	        default:
+	            // arg
+	            cli.addNewArg(args[i]);
+	            break;
+	        }
+	    }
+	    
+	    cli.setCLIOpts();
+	    CodeSpace space = new CodeSpace(10, true);
+	    CodeRequest newReq = new CodeRequest(cli.getX(), space, 100);
+	    newReq.genCodes();
+	}
+		
+	private void setCLIOpts() {
+		// While no DB exists, pass in x from the command line using parser
+		_optsList = new ArrayList<Option>();
+		_argsList = new ArrayList<String>();
+		_doubleOptsList = new ArrayList<String>();
+		for (Option opt: this._optsList) {
+			if (opt.flag == "-x") _x = new BigInteger(opt.opt);
+		}
+	}
+	
+	private void printCodesToFile() {
+		// TODO: implement method to update database with current generation etc..
+	}
+}

@@ -1,0 +1,143 @@
+package com.huuta.examplefrontend;
+
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JComboBox;
+
+import com.codefarm.interaction.CodeSpace;
+import com.codefarm.interaction.FrontEndContext;
+
+
+class AllocateCodesDialog extends JDialog {
+		/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+		private CodeSpace _selectedCodeSpace;
+		private int _codeCount;
+		private boolean _cancelled;
+		private JTextField _numberOfCodesText;
+		private JComboBox<Object> _codeSpaceSelectCombo;
+		private DefaultComboBoxModel<Object> _codeSpaceSelectComboModel;
+		
+		public boolean isCancelled() {
+			return _cancelled;
+		}
+
+		public CodeSpace getSelectedCodeSpace() {
+			return _selectedCodeSpace;
+		}
+
+		public int getCodeCount() {
+			return _codeCount;
+		}
+		
+		public AllocateCodesDialog(ArrayList<CodeSpace> codeSpaces) {
+			_cancelled = false;
+			setResizable(false);
+			setTitle("Allocate Codes to User");
+			setModal(true);
+			Object[] codeSpacesArray = codeSpaces.toArray();
+			_codeSpaceSelectComboModel = new DefaultComboBoxModel<Object>(codeSpacesArray);
+			initialise();
+		}
+		
+		private void initialise() {
+			JPanel content = new JPanel();
+			content.setBorder(new EmptyBorder(5, 5, 5, 5));
+			JButton btnOK = new JButton("OK");
+			btnOK.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					ok();
+				}
+			});
+			this.setContentPane(content);
+			JButton btnCancel = new JButton("Cancel");
+			btnCancel.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					cancel();
+				}
+			});
+			
+			JLabel lblCodeSpaceSelect = new JLabel("Code Space:");
+			
+			JLabel lblCodeNumber = new JLabel("Number of Codes:");
+			
+			_numberOfCodesText = new JTextField();
+			_numberOfCodesText.setColumns(10);
+			content.getRootPane().setDefaultButton(btnOK);
+			
+			_codeSpaceSelectCombo = new JComboBox<Object>();
+			_codeSpaceSelectCombo.setModel(_codeSpaceSelectComboModel);
+			GroupLayout gl_content = new GroupLayout(content);
+			gl_content.setHorizontalGroup(
+				gl_content.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_content.createSequentialGroup()
+						.addGroup(gl_content.createParallelGroup(Alignment.TRAILING)
+							.addGroup(gl_content.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(btnOK, GroupLayout.PREFERRED_SIZE, 94, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 94, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.RELATED))
+							.addGroup(gl_content.createParallelGroup(Alignment.TRAILING)
+								.addGroup(gl_content.createSequentialGroup()
+									.addComponent(lblCodeSpaceSelect, GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
+									.addPreferredGap(ComponentPlacement.UNRELATED)
+									.addComponent(_codeSpaceSelectCombo, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE))
+								.addGroup(gl_content.createSequentialGroup()
+									.addComponent(lblCodeNumber, GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(_numberOfCodesText, 233, 233, 233))))
+						.addGap(14))
+			);
+			gl_content.setVerticalGroup(
+				gl_content.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_content.createSequentialGroup()
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblCodeSpaceSelect, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(_codeSpaceSelectCombo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(_numberOfCodesText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblCodeNumber, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
+						.addGap(18)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(btnOK)
+							.addComponent(btnCancel))
+						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+			);
+			content.setLayout(gl_content);
+			pack();
+		}
+		
+		private void ok() {
+			if (this._numberOfCodesText.getText() == "") {
+				JOptionPane.showMessageDialog(this, "You must specify all fields", "Allocate Codes to User", JOptionPane.ERROR_MESSAGE);
+			} else {
+				_selectedCodeSpace = (CodeSpace) this._codeSpaceSelectComboModel.getSelectedItem();
+				_codeCount = Integer.valueOf(this._numberOfCodesText.getText());
+				this.setVisible(false);
+			}
+		}
+		
+		private void cancel() {
+			_cancelled = true;
+			this.setVisible(false);
+		}
+	}

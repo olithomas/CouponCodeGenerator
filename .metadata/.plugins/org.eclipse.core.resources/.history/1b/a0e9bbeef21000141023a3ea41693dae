@@ -1,0 +1,222 @@
+package com.huuta.examplefrontend;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.util.ArrayList;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JCheckBox;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JLabel;
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
+import javax.swing.DefaultComboBoxModel;
+
+import com.codefarm.engine.CodeFormatter;
+import com.codefarm.interaction.FrontEndContext;
+import com.codefarm.interaction.User;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+public class AddCodeSpaceDialog extends JDialog {
+
+	private boolean _isCancelled;
+	private final JPanel contentPanel = new JPanel();
+	private JCheckBox _chckbxExcludes;
+	private JCheckBox _chckbxUserOwned;
+	private JTextField _excludesText;
+	private JTextField _codeSpaceNameText;
+	private JComboBox<Object> _codeSpaceOwnerCombo;
+	private JComboBox<Object> _codeLenCombo;
+	private JLabel _lblCodeSpaceOwner;
+	private JLabel _lblExcludes;
+	private FrontEndContext _frontEnd;
+
+	public boolean isCancelled() {
+		return _isCancelled;
+	}
+
+	public boolean isUserOwned() {
+		return _chckbxUserOwned.isSelected();
+	}
+
+	public boolean hasExcludes() {
+		return _chckbxExcludes.isSelected();
+	}
+	
+	public User getSelectedUser() {
+		return (User) _codeSpaceOwnerCombo.getSelectedItem();
+	}
+	
+	public String getExcludes() {
+		return _excludesText.getText();
+	}
+	
+	public Integer getCodeLen() {
+		return (Integer) _codeLenCombo.getSelectedItem();
+	}
+	
+	public String getCodeSpaceName() {
+		return _codeSpaceNameText.getText();
+	}
+
+	/**
+	 * Create the dialog.
+	 */
+	public AddCodeSpaceDialog(FrontEndContext frontEnd) {
+		_isCancelled = false;
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent arg0) {
+				_isCancelled = true;
+				setVisible(false);
+			}
+		});
+		_frontEnd = frontEnd;
+		setModal(true);
+		initialise();
+	}
+	
+	private void initialise() {
+		setTitle("Add Code Space");
+		setBounds(100, 100, 450, 300);
+		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
+		_chckbxUserOwned = new JCheckBox("Is User-Owned (Default is Front End Owned)");
+		if (_frontEnd.getUserCount() == 0) _chckbxUserOwned.setEnabled(false);
+		_chckbxUserOwned.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (_chckbxUserOwned.isSelected()) {
+					_codeSpaceOwnerCombo.setEnabled(true);
+					_lblCodeSpaceOwner.setEnabled(true);
+				} else {
+					_codeSpaceOwnerCombo.setEnabled(false);
+					_lblCodeSpaceOwner.setEnabled(false);
+				}
+			}
+		});
+		_chckbxExcludes = new JCheckBox("Codes will Exclude Certain Characters (Specified Below)");
+		_chckbxExcludes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (_chckbxExcludes.isSelected()) {
+					_excludesText.setEnabled(true);
+					_lblExcludes.setEnabled(true);
+				} else {
+					_excludesText.setEnabled(false);
+					_lblExcludes.setEnabled(false);
+				}
+			}
+		});
+		_lblCodeSpaceOwner = new JLabel("Code Space Owner:");
+		_lblCodeSpaceOwner.setEnabled(false);
+		_lblExcludes = new JLabel("Excluded Characters:");
+		_lblExcludes.setEnabled(false);
+		JLabel label = new JLabel("");
+		JLabel lblCodeStringLength = new JLabel("Code String Length:");
+		JLabel lblCodeSpaceName = new JLabel("Code Space Name:");
+		_codeSpaceOwnerCombo = new JComboBox<Object>();
+		_codeSpaceOwnerCombo.setModel(new DefaultComboBoxModel<Object>(_frontEnd.getUsers().toArray()));
+		_codeSpaceOwnerCombo.setEnabled(false);
+		
+		_excludesText = new JTextField();
+		_excludesText.setEnabled(false);
+		_excludesText.setColumns(10);
+		
+		_codeLenCombo = new JComboBox<Object>();
+		ArrayList<Integer> codeLenArray = new ArrayList<Integer>();
+		for (int i = CodeFormatter.MIN_CODE_LENGTH; i <= CodeFormatter.MAX_CODE_LENGTH; i++) {
+			codeLenArray.add(i);
+		}
+		_codeLenCombo.setModel(new DefaultComboBoxModel<Object>(codeLenArray.toArray()));
+		
+		_codeSpaceNameText = new JTextField();
+		_codeSpaceNameText.setColumns(10);
+		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
+		gl_contentPanel.setHorizontalGroup(
+			gl_contentPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(_chckbxUserOwned)
+						.addComponent(_chckbxExcludes)
+						.addComponent(label)
+						.addGroup(gl_contentPanel.createSequentialGroup()
+							.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(lblCodeSpaceName, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(lblCodeStringLength, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(_lblCodeSpaceOwner, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(_lblExcludes, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addGap(18)
+							.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+								.addComponent(_excludesText, GroupLayout.DEFAULT_SIZE, 283, Short.MAX_VALUE)
+								.addComponent(_codeSpaceOwnerCombo, 0, 283, Short.MAX_VALUE)
+								.addComponent(_codeLenCombo, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE)
+								.addComponent(_codeSpaceNameText, GroupLayout.DEFAULT_SIZE, 283, Short.MAX_VALUE))))
+					.addContainerGap())
+		);
+		gl_contentPanel.setVerticalGroup(
+			gl_contentPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPanel.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(_chckbxUserOwned)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(_chckbxExcludes)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(_lblCodeSpaceOwner)
+						.addComponent(_codeSpaceOwnerCombo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(18)
+					.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(_lblExcludes)
+						.addComponent(_excludesText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(4)
+					.addComponent(label)
+					.addGap(18)
+					.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblCodeStringLength)
+						.addComponent(_codeLenCombo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addGap(18)
+					.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblCodeSpaceName)
+						.addComponent(_codeSpaceNameText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(39, Short.MAX_VALUE))
+		);
+		contentPanel.setLayout(gl_contentPanel);
+		{
+			JPanel buttonPane = new JPanel();
+			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+			getContentPane().add(buttonPane, BorderLayout.SOUTH);
+			{
+				JButton okButton = new JButton("OK");
+				okButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						setVisible(false);
+					}
+				});
+				okButton.setActionCommand("OK");
+				buttonPane.add(okButton);
+				getRootPane().setDefaultButton(okButton);
+			}
+			{
+				JButton cancelButton = new JButton("Cancel");
+				cancelButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						_isCancelled = true;
+						setVisible(false);
+					}
+				});
+				cancelButton.setActionCommand("Cancel");
+				buttonPane.add(cancelButton);
+			}
+		}
+	}
+}

@@ -1,0 +1,181 @@
+package com.huuta.examplefrontend;
+
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+
+
+class AddCodeSpaceDialog extends JDialog {
+		/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+		private int _codeLen;
+		private String _excludes;
+		private String _csName;
+		private boolean _cancelled;
+		
+		public boolean isCancelled() {
+			return _cancelled;
+		}
+
+		public int getCodeLen() {
+			return _codeLen;
+		}
+
+		public String getExcludes() {
+			return _excludes;
+		}
+
+		public String getCsName() {
+			return _csName;
+		}
+
+		private JTextField _codeLenText;
+		private JTextField _excludesText;
+		private JTextField _csNameText;
+		private JLabel _lblExcludes;
+		private JCheckBox _chckbxExcludes;
+		
+		public AddCodeSpaceDialog() {
+			_cancelled = false;
+			setResizable(false);
+			setTitle("Add Code Space");
+			setModal(true);
+			JPanel content = new JPanel();
+			content.setBorder(new EmptyBorder(5, 5, 5, 5));
+			JButton btnOK = new JButton("OK");
+			btnOK.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					ok();
+				}
+			});
+			this.setContentPane(content);
+			JButton btnCancel = new JButton("Cancel");
+			btnCancel.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					cancel();
+				}
+			});
+			
+			JLabel lblCodeLen = new JLabel("Code length:");
+			
+			_lblExcludes = new JLabel("Excludes:");
+			_lblExcludes.setEnabled(false);
+			
+			JLabel lblCodeSpaceName = new JLabel("Code Space name:");
+			
+			_codeLenText = new JTextField();
+			_codeLenText.setColumns(10);
+			
+			_excludesText = new JTextField();
+			_excludesText.setEnabled(false);
+			_excludesText.setColumns(10);
+			
+			_csNameText = new JTextField();
+			_csNameText.setColumns(10);
+			content.getRootPane().setDefaultButton(btnOK);
+			
+			JCheckBox chckbxNewCheckBox = new JCheckBox("User-Owned Code Space");
+			
+			JComboBox comboBox = new JComboBox();
+			comboBox.setEnabled(false);
+			
+			JLabel lblSelectOwneruser = new JLabel("Select Owner (User)");
+			lblSelectOwneruser.setEnabled(false);
+			
+			_chckbxExcludes = new JCheckBox("Has Excludes");
+			GroupLayout gl_content = new GroupLayout(content);
+			gl_content.setHorizontalGroup(
+				gl_content.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_content.createSequentialGroup()
+						.addGroup(gl_content.createParallelGroup(Alignment.LEADING)
+							.addGroup(gl_content.createSequentialGroup()
+								.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 165, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addComponent(lblSelectOwneruser)
+								.addGap(18)
+								.addComponent(chckbxNewCheckBox))
+							.addGroup(gl_content.createParallelGroup(Alignment.TRAILING)
+								.addGroup(gl_content.createSequentialGroup()
+									.addContainerGap()
+									.addComponent(btnOK, GroupLayout.PREFERRED_SIZE, 94, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 94, GroupLayout.PREFERRED_SIZE))
+								.addGroup(Alignment.LEADING, gl_content.createSequentialGroup()
+									.addGroup(gl_content.createParallelGroup(Alignment.TRAILING, false)
+										.addComponent(_lblExcludes, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addComponent(lblCodeSpaceName, GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+										.addComponent(lblCodeLen, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addGroup(gl_content.createParallelGroup(Alignment.LEADING)
+										.addComponent(_codeLenText, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
+										.addComponent(_csNameText, 233, 233, 233)
+										.addGroup(gl_content.createSequentialGroup()
+											.addComponent(_excludesText, GroupLayout.PREFERRED_SIZE, 156, GroupLayout.PREFERRED_SIZE)
+											.addGap(18)
+											.addComponent(_chckbxExcludes, GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE))))))
+						.addContainerGap(1280, GroupLayout.PREFERRED_SIZE))
+			);
+			gl_content.setVerticalGroup(
+				gl_content.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_content.createSequentialGroup()
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblSelectOwneruser)
+							.addComponent(chckbxNewCheckBox))
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblCodeLen, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(_codeLenText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(_lblExcludes, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(_excludesText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(_chckbxExcludes))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblCodeSpaceName, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addComponent(_csNameText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE))
+						.addGap(18)
+						.addGroup(gl_content.createParallelGroup(Alignment.BASELINE)
+							.addComponent(btnCancel)
+							.addComponent(btnOK))
+						.addContainerGap(57, Short.MAX_VALUE))
+			);
+			content.setLayout(gl_content);
+			pack();
+		}
+		
+		private void ok() {
+			if (_codeLenText.getText() == "" || _excludesText.getText() == "" || _csNameText.getText() == "") {
+				JOptionPane.showMessageDialog(this, "You must specify all fields", "Add Code Space", JOptionPane.ERROR_MESSAGE);
+			} else {
+				_codeLen = Integer.valueOf(_codeLenText.getText());
+				_excludes = _excludesText.getText();
+				_csName = _csNameText.getText();
+				this.setVisible(false);
+			}
+		}
+		
+		private void cancel() {
+			_cancelled = true;
+			this.setVisible(false);
+		}
+	}

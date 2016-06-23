@@ -1,0 +1,84 @@
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class Generator {
+	
+	List<Option> optsList;
+	List<String> argsList;
+	List<String> doubleOptsList;
+	Long n; int k;
+	
+	private class Option {
+	     String flag, opt;
+	     public Option(String flag, String opt) { this.flag = flag; this.opt = opt; }
+	}
+	
+	public Generator() {
+		optsList = new ArrayList<Option>();
+		argsList = new ArrayList<String>();
+		doubleOptsList = new ArrayList<String>();
+	}
+	
+	public void addNewOption(String flag, String opt) { this.optsList.add(new Option(flag, opt)); }
+	public void addNewArg(String arg) { this.argsList.add(arg); }
+	public void addDoubleOpt(String dOpt) { this.doubleOptsList.add(dOpt); }
+
+	static public void main(String[] args) {
+		Generator generator = new Generator();
+
+	    for (int i = 0; i < args.length; i++) {
+	        switch (args[i].charAt(0)) {
+	        case '-':
+	            if (args[i].length() < 2)
+	                throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	            if (args[i].charAt(1) == '-') {
+	                if (args[i].length() < 3)
+	                    throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	                // --opt
+	                generator.addDoubleOpt(args[i].substring(2, args[i].length()));
+	            } else {
+	                if (args.length-1 == i)
+	                    throw new IllegalArgumentException("Expected arg after: "+args[i]);
+	                // -opt
+	                generator.addNewOption(args[i], args[i+1]);
+	                i++;
+	            }
+	            break;
+	        default:
+	            // arg
+	            generator.addNewArg(args[i]);
+	            break;
+	        }
+	    }
+	    generator.setParameters();
+	    generator.generateCodes();
+	}
+
+	private void setParameters() {
+		// Find the -n option
+		for (Option opt: this.optsList) {
+			if (opt.flag == "-n") this.n = Long.parseLong(opt.opt);
+			if (opt.flag == "-k") this.k = Integer.parseInt(opt.opt);
+		}
+	}
+
+	private void generateCodes() {
+		// TODO write algorithm based on quadratic residue and large prime number
+		
+	}
+	
+	// no nextLong(long n) method in Java (for some reason). Got this method from 
+	// stack overflow.
+	// http://stackoverflow.com/questions/2546078/java-random-long-number-in-0-x-n-range
+	long nextLong(Random rng, long n) {
+		   // error checking and 2^x checking removed for simplicity.
+		   long bits, val;
+		   do {
+		      bits = (rng.nextLong() << 1) >>> 1;
+		      val = bits % n;
+		   } while (bits-val+(n-1) < 0L);
+		   return val;
+		}
+}

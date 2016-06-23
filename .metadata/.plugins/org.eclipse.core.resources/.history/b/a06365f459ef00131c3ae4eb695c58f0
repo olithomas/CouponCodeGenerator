@@ -1,0 +1,40 @@
+package engine;
+
+import java.math.BigInteger;
+
+
+// Utility class for static methods (algorithms basically)
+public final class CodeFactory {
+	
+	private CodeFactory() {}
+	
+	public static BigInteger getFactorial(BigInteger n) {
+	    BigInteger result = BigInteger.ONE;
+
+	    while (!n.equals(BigInteger.ZERO)) {
+	        result = result.multiply(n);
+	        n = n.subtract(BigInteger.ONE);
+	    }
+
+	    return result;
+	}
+	
+	public static BigInteger getRandomBigInt(CodeSpace cs, BigInteger x) {
+		/* 
+		 * x	=   An integer that satisfies 0 < x <= (p/2) where p is the primary seed
+		 * p	=	A prime number as defined in the class constant P (see above)
+		 * r	=	the remainder (quadratic residue) of the squae of x (mod P)
+		 */
+		BigInteger p = cs.getP();
+		BigInteger halfP = cs.getHalfP();
+		
+		BigInteger r;
+		r = x.multiply(x).mod(p);
+		if (x.compareTo(halfP) <= 0) {
+			return r;
+		} else {
+			return p.subtract(r);
+		}
+	}
+
+}

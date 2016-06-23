@@ -1,0 +1,405 @@
+package com.huuta.examplefrontend;
+
+import javax.swing.JPanel;
+
+import com.codefarm.engine.Code;
+import com.codefarm.interaction.CodeSpace;
+import com.codefarm.interaction.FrontEnd;
+import com.codefarm.interaction.User;
+
+import javax.swing.JScrollPane;
+
+import java.awt.BorderLayout;
+
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+
+import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JButton;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.Component;
+
+public class UserTab extends JPanel implements Observer {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private FrontEnd _frontEnd;
+	private GridLayout _layout;
+	private JTable _userListTable;
+	private DefaultTableModel _userListTableModel;
+	private JTable _userCodesTable;
+	private DefaultTableModel _userCodesTableModel;
+	private JTextField _userCountTextField;
+	private JTextField _userIdTextField;
+	private JTextField _userNameTextField;
+	private JTextField _totalCodesTextField;
+	
+	/**
+	 * Create the panel.
+	 */
+	public UserTab(FrontEnd frontEnd) {
+		_frontEnd = frontEnd;
+		_frontEnd.addObserver(this);
+		initialise();
+	}
+	
+	private void allocateCodes() {
+		int userId = getActiveUserFromTable();
+		AllocateCodesDialog acd = new AllocateCodesDialog(_frontEnd.getCodeSpaces());
+		acd.setLocationRelativeTo(this);
+		acd.setVisible(true);
+		if (acd.isCancelled()) return;
+		_frontEnd.addCodes(acd.getCodeCount(), acd.getSelectedCodeSpace().getCodeSpaceId(), userId);
+		
+	}
+	
+	public void addUser() {
+		AddUserDialog ud = new AddUserDialog(this);
+		ud.setVisible(true);
+		if (ud.isCancelled()) return;
+		String[] userData = new String[] {
+				ud.getFirstName(), 
+				ud.getSecondName(), 
+				ud.getEmailName()
+		};
+		_frontEnd.addUser(userData);
+		ud.dispose();
+	}
+	
+	private void getCodeData(Code code) {
+		JFrame frame = new JFrame();
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setLocationRelativeTo(this);
+		frame.getContentPane().setLayout(new BorderLayout());
+		CodeInfoPanel cip = new CodeInfoPanel(); // isReadOnly = false
+		cip.refreshCodeData(code);
+		frame.getContentPane().add(cip, BorderLayout.CENTER);
+		frame.pack();
+		frame.setResizable(false);
+		frame.setVisible(true);
+	}
+	
+	private void setCodeData(Code code) {
+		// TODO implement
+	}
+	
+	private void initialise() {
+		_layout = new GridLayout(2, 1, 0, 0);
+		setLayout(_layout);
+		
+		JPanel _userListPanel = new JPanel();
+		add(_userListPanel);
+		
+		JButton btnAllocateCodes = new JButton("Allocate Codes to User");
+		btnAllocateCodes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				allocateCodes();
+			}
+		});
+		
+		_userListTable = new JTable();
+		_userListTableModel = new DefaultTableModel(
+				new Object[0][0],
+				new String[] { "User ID", "First Name", "Last Name", "Email" }) 
+				{
+					Class[] columnTypes = new Class[] {
+						Integer.class, String.class, String.class, String.class
+					};
+					public Class getColumnClass(int columnIndex) {
+						return columnTypes[columnIndex];
+					}
+					boolean[] columnEditables = new boolean[] {
+						false, false, false, false
+					};
+					public boolean isCellEditable(int row, int column) {
+						return columnEditables[column];
+					}
+				};
+		_userListTable.setModel(_userListTableModel);
+		
+		_userListTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+		_userListTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+		_userListTable.addMouseListener(new MouseAdapter() {
+			   public void mouseClicked(MouseEvent e) {
+				   	Integer userId = getActiveUserFromTable();
+			        if (userId != null) refreshUserCodesList(userId);
+				   	
+			   }
+			});
+		
+		JScrollPane userListScrollPane = new JScrollPane(_userListTable);
+		
+		_userCodesTable = new JTable();
+		_userCodesTableModel = new DefaultTableModel(
+				new Object[0][0],
+				new String[] { "Code", "Code Space", "Created" }) 
+				{
+					Class[] columnTypes = new Class[] {
+						String.class, String.class, String.class
+					};
+					public Class getColumnClass(int columnIndex) {
+						return columnTypes[columnIndex];
+					}
+					boolean[] columnEditables = new boolean[] {
+						false, false, false
+					};
+					public boolean isCellEditable(int row, int column) {
+						return columnEditables[column];
+					}
+				};
+		_userCodesTable.setModel(_userCodesTableModel);
+		
+		_userCodesTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+		_userCodesTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+		_userCodesTable.addMouseListener(new MouseAdapter() {
+			   public void mouseClicked(MouseEvent e) {
+				   if (e.getClickCount() == 2) {
+					   Code code = getActiveCodeFromTable();
+					   if (code != null) getCodeData(code);
+				   }
+			   }
+			});
+		
+		JScrollPane userCodesScrollPane = new JScrollPane(_userCodesTable);
+		
+		JLabel lblUserCount = new JLabel("User Count:");
+		
+		_userCountTextField = new JTextField();
+		_userCountTextField.setEditable(false);
+		_userCountTextField.setColumns(10);
+		
+		JButton btnDeleteUser = new JButton("Delete User");
+		
+		JButton btnAddUser = new JButton("Add User");
+		btnAddUser.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				addUser();
+			}
+		});
+		
+		JButton btnUpdateUsersCode = new JButton("Update User's Code Data");
+		btnUpdateUsersCode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new SetCodeDataDialog(getActiveUserFromTable(), _frontEnd).setVisible(true);
+			}
+		});
+		
+		GroupLayout gl__userListPanel = new GroupLayout(_userListPanel);
+		gl__userListPanel.setHorizontalGroup(
+			gl__userListPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl__userListPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl__userListPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(userListScrollPane, GroupLayout.DEFAULT_SIZE, 612, Short.MAX_VALUE)
+						.addGroup(gl__userListPanel.createSequentialGroup()
+							.addComponent(lblUserCount)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_userCountTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addGroup(gl__userListPanel.createSequentialGroup()
+							.addComponent(btnAllocateCodes)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnUpdateUsersCode)
+							.addPreferredGap(ComponentPlacement.RELATED, 204, Short.MAX_VALUE)
+							.addComponent(btnAddUser)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnDeleteUser)))
+					.addContainerGap())
+		);
+		gl__userListPanel.setVerticalGroup(
+			gl__userListPanel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl__userListPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl__userListPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblUserCount)
+						.addComponent(_userCountTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(userListScrollPane, GroupLayout.DEFAULT_SIZE, 163, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl__userListPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnAllocateCodes)
+						.addComponent(btnDeleteUser)
+						.addComponent(btnAddUser)
+						.addComponent(btnUpdateUsersCode))
+					.addContainerGap())
+		);
+		_userListPanel.setLayout(gl__userListPanel);
+		
+		JPanel userCodesPanel = new JPanel();
+		add(userCodesPanel);
+		
+		JLabel label_1 = new JLabel((String) null);
+		
+		JLabel label_3 = new JLabel((String) null);
+		
+		JLabel label_5 = new JLabel((String) null);
+		
+		JLabel label_7 = new JLabel((String) null);
+		
+		JButton btnViewData = new JButton("View Code Data");
+		btnViewData.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Code code = getActiveCodeFromTable();
+				if (code != null) getCodeData(code);
+			}
+		});
+		
+		JLabel lblUserId = new JLabel("User ID:");
+		
+		_userIdTextField = new JTextField();
+		_userIdTextField.setEditable(false);
+		_userIdTextField.setColumns(10);
+		
+		JLabel lblUserName = new JLabel("User Name:");
+		
+		_userNameTextField = new JTextField();
+		_userNameTextField.setEditable(false);
+		_userNameTextField.setColumns(10);
+		
+		JLabel lblTotalCodes = new JLabel("Total Codes:");
+		
+		_totalCodesTextField = new JTextField();
+		_totalCodesTextField.setEditable(false);
+		_totalCodesTextField.setColumns(10);
+		GroupLayout gl_userCodesPanel = new GroupLayout(userCodesPanel);
+		gl_userCodesPanel.setHorizontalGroup(
+			gl_userCodesPanel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_userCodesPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_userCodesPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(userCodesScrollPane, GroupLayout.DEFAULT_SIZE, 612, Short.MAX_VALUE)
+						.addGroup(gl_userCodesPanel.createSequentialGroup()
+							.addComponent(lblUserId)
+							.addGroup(gl_userCodesPanel.createParallelGroup(Alignment.LEADING, false)
+								.addGroup(gl_userCodesPanel.createSequentialGroup()
+									.addGap(94)
+									.addComponent(label_1)
+									.addGap(89)
+									.addComponent(label_3)
+									.addGap(70)
+									.addComponent(label_5)
+									.addGap(85)
+									.addComponent(label_7))
+								.addGroup(gl_userCodesPanel.createSequentialGroup()
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(_userIdTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addGap(18)
+									.addComponent(lblUserName)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(_userNameTextField)))
+							.addGap(18)
+							.addComponent(lblTotalCodes)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_totalCodesTextField, GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE))
+						.addComponent(btnViewData))
+					.addContainerGap())
+		);
+		gl_userCodesPanel.setVerticalGroup(
+			gl_userCodesPanel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_userCodesPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_userCodesPanel.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_userCodesPanel.createParallelGroup(Alignment.BASELINE)
+							.addComponent(label_1)
+							.addComponent(label_3)
+							.addComponent(label_5)
+							.addComponent(label_7))
+						.addGroup(gl_userCodesPanel.createParallelGroup(Alignment.BASELINE)
+							.addComponent(lblUserId)
+							.addComponent(_userIdTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblUserName)
+							.addComponent(_userNameTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblTotalCodes)
+							.addComponent(_totalCodesTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(userCodesScrollPane, GroupLayout.DEFAULT_SIZE, 163, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnViewData)
+					.addContainerGap())
+		);
+		userCodesPanel.setLayout(gl_userCodesPanel);
+	}
+	
+	private Integer getActiveUserFromTable() {
+		int userId;
+		int row;
+		if ((row = this._userListTable.getSelectedRow()) == -1) {
+			return null;
+		} else {
+			userId = (Integer) this._userListTableModel.getValueAt(row, 0);
+			return userId;
+		}
+	}
+	
+	private Code getActiveCodeFromTable() {
+		int row;
+		if ((row = this._userCodesTable.getSelectedRow()) == -1) {
+			return null;
+		} else {
+			String codeStr = (String) this._userCodesTableModel.getValueAt(row, 0);
+			return _frontEnd.getCode(codeStr);
+		}
+	}
+	
+	private void refreshUsersList() {
+		
+		int rowCount = _userListTableModel.getRowCount();
+		for (int i = rowCount; i > 0; i--) {
+			_userListTableModel.removeRow(i - 1);
+		}
+		
+		for (User user : _frontEnd.getUsers()) {
+			Object[] data = new Object[] { // User ID, f name, l name, email
+					user.getUserId(), user.getFirstName(), user.getLastName(), user.getEmail()
+			};
+			_userListTableModel.addRow(data);
+		}
+	}
+	
+	private void refreshUserCodesList(int userId) {
+		User user = _frontEnd.getUser(userId);
+		ArrayList<Code> userCodes = _frontEnd.getCodesByUserId(userId);
+		
+		this._userIdTextField.setText(String.valueOf(userId));
+		this._userNameTextField.setText(user.getFirstName() + " " + user.getLastName());
+		this._totalCodesTextField.setText(String.valueOf(userCodes.size()));
+		
+		int rowCount = _userCodesTableModel.getRowCount();
+		for (int i = rowCount; i > 0; i--) {
+			_userCodesTableModel.removeRow(i - 1);
+		}
+		
+		for (Code code : userCodes) {
+			Object[] data = new Object[] { // Code, code space, created
+					code.getStringVal(), _frontEnd.getCodeSpace(code.getGeneratorId()), 
+					code.getCreationTimestamp().toString()
+			};
+			_userCodesTableModel.addRow(data);
+		}
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		refreshUsersList();
+		this._userCountTextField.setText(String.valueOf(_frontEnd.getUserCount()));
+	}
+}

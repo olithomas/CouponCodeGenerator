@@ -1,0 +1,164 @@
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.math.BigInteger;
+
+public class Generator {
+	/*
+	 * P	=	constant prime number specifying max permutations of quadratic residue function
+	 * This should represent the size of the code space.
+	 * P is used in generateRandomPermutation() below.
+	 * The value of P must satisfy P=3(mod 4)
+	 * The largest prime that satisfies the above and is a valid 32-bit integer is 4,294,967,291 (4.2 billion)
+	 * BigInteger class is used however, so bigger primes could be input.
+	 * TODO: Figure out primes to use for whole code space. (values of P<BigInteger>)
+	 */
+	private static final BigInteger P = new BigInteger("4294967291");
+	private static final BigInteger DIVISOR1 = new BigInteger("2");
+	private static final BigInteger HALF_P = P.divide(DIVISOR1);
+	/*
+	 * Constants to limit the number of permutations generated in one go: 
+	 */
+	private static final int MIN_PERM = 250;
+	private static final int MAX_PERM = 10000;
+	
+	// Instance variables for the option parser
+	List<Option> optsList;
+	List<String> argsList;
+	List<String> doubleOptsList;
+	
+	// Instance variable representing current x value in code space (for quadratic residue function)
+	BigInteger x;
+	
+	// Constructor:
+	public Generator() {
+		optsList = new ArrayList<Option>();
+		argsList = new ArrayList<String>();
+		doubleOptsList = new ArrayList<String>();
+	}
+	
+	public void initialiseFromDB() {
+		// TODO: implement method to retrieve current x value from database and set instance value x
+		// While no DB exists, pass in x from the command line
+		for (Option opt: this.optsList) {
+			if (opt.flag == "-x") this.x = new BigInteger(opt.opt);
+		}
+	}
+	
+	public void writeStateToDB() {
+		// TODO: implement method to update database with current instance value of x
+	}
+	
+	public ArrayList<String> getCodeList(int perm) {
+		/*
+		 * TODO: Implement the public method to get the code list in string form
+		 * perm is the number of random unique integers to generate in one go.
+		 * The function forces the returned permutation count between MIN_PERM and MAX_PERM
+		 * The MIN_PERM value exists to keep the shuffled ArrayList sufficiently large to ensure
+		 * good random distribution of the permutations.
+		 * The MAX_PERM value sets a limit on the number of permutations to stop large values
+		 * passed in error from killing the software!
+		 */
+		if (perm < Generator.MIN_PERM) perm = Generator.MIN_PERM;
+		if (perm > Generator.MAX_PERM) perm = Generator.MAX_PERM;
+		return null;
+	}
+	
+	private ArrayList<BigInteger> getShuffledBigIntList(int perm) {
+		/* 
+		 * value of perm is validated by the public method getCodeList and will always be between
+		 * MIN_PERM and MAX_PERM
+		 */
+		ArrayList<BigInteger> list = new ArrayList<BigInteger>();
+		ArrayList<BigInteger> shuffledList;
+		BigInteger newPerm;
+		
+		for (int i = 0; i < perm; i++) {
+			// Generate a new permutation:
+			newPerm = generateRandomPermutation(this.x);
+			// Add it to the list:
+			list.add(newPerm);
+			// And then increment x:
+			this.x = this.x.add(BigInteger.ONE);
+		}
+		shuffledList = shuffleList(list);
+		return shuffledList;
+	}
+
+	private BigInteger generateRandomPermutation(BigInteger _x) {
+		/* 
+		 * x	=   An integer that satisfies 0 < x <= (p/2) where p is the primary seed
+		 * p	=	A prime number as defined in the class constant P (see above)
+		 * r	=	the remainder (quadratic residue) of the squae of x (mod P)
+		 */
+		BigInteger r;
+		r = _x.multiply(_x).mod(Generator.P);
+		if (_x.compareTo(Generator.HALF_P) <= 0) {
+			return r;
+		} else {
+			return Generator.P.subtract(r);
+		}
+	}
+	
+	private ArrayList<BigInteger> shuffleList(ArrayList<BigInteger> list) {
+		/* TODO: Add source of randomness as second argument to this function
+		i.e. shuffleList(List<BigInteger> list, Random rand) */
+		ArrayList<BigInteger> shuffledList = new ArrayList<BigInteger>(list);
+		Collections.shuffle(shuffledList); // TODO: include random source when I implement it
+		return shuffledList;		
+	}
+	
+	/* 
+	 * ------------- Command line and option parsing code below this line -----------------
+	 */
+	
+	private class Option {
+	     String flag, opt;
+	     public Option(String flag, String opt) { this.flag = flag; this.opt = opt; }
+	}
+	
+	// Convenience methods for option parser:
+	public void addNewOption(String flag, String opt) { this.optsList.add(new Option(flag, opt)); }
+	public void addNewArg(String arg) { this.argsList.add(arg); }
+	public void addDoubleOpt(String dOpt) { this.doubleOptsList.add(dOpt); }
+	
+	// TODO: Move this into separate 'main' class??
+	static public void main(String[] args) {
+		Generator generator = new Generator();
+
+	    for (int i = 0; i < args.length; i++) {
+	        switch (args[i].charAt(0)) {
+	        case '-':
+	            if (args[i].length() < 2)
+	                throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	            if (args[i].charAt(1) == '-') {
+	                if (args[i].length() < 3)
+	                    throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	                // --opt
+	                generator.addDoubleOpt(args[i].substring(2, args[i].length()));
+	            } else {
+	                if (args.length-1 == i)
+	                    throw new IllegalArgumentException("Expected arg after: "+args[i]);
+	                // -opt
+	                generator.addNewOption(args[i], args[i+1]);
+	                i++;
+	            }
+	            break;
+	        default:
+	            // arg
+	            generator.addNewArg(args[i]);
+	            break;
+	        }
+	    }
+	    // public access method to initialise x value from DB:
+	    generator.initialiseFromDB();
+	    // And then this is the public access method that does it all:
+	    ArrayList<String> codes;
+	    codes = generator.getCodeList(250);
+	    // And then wrap things up
+	    generator.writeStateToDB();
+	    // generator.generateRandomPermutation();
+	}
+}

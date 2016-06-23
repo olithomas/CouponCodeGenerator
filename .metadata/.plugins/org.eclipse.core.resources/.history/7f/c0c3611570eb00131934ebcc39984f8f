@@ -1,0 +1,9 @@
+package engine;
+
+public class PrimeManager {
+
+	public PrimeManager() {
+		// TODO Auto-generated constructor stub
+	}
+
+}

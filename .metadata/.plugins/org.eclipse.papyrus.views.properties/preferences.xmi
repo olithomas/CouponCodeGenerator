@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ASCII"?>
+<pref:Preferences xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:pref="http://www.eclipse.org/papryus/properties/preferences" version="2">
+  <contexts name="Customization"/>
+  <contexts name="style"/>
+  <contexts name="notation"/>
+  <contexts name="papyrustableinstance"/>
+  <contexts name="tableinstance"/>
+  <contexts name="tableinstance2"/>
+  <contexts name="SysML"/>
+  <contexts name="SequenceNotation"/>
+  <contexts name="UML"/>
+  <contexts name="UMLNotation"/>
+</pref:Preferences>

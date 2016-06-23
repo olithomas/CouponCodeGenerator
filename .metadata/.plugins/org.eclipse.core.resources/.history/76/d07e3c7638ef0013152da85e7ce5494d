@@ -1,0 +1,93 @@
+package engine;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DBController {
+	
+	private BigInteger _x;
+	
+	// Constructor
+	public DBController() {
+		
+	}
+	
+	private class Option {
+	     String flag, opt;
+	     public Option(String flag, String opt) { this.flag = flag; this.opt = opt; }
+	}
+	
+	// Temp code for command line parser during dev:
+	private List<Option> _optsList;
+	private List<String> _argsList;
+	private List<String> _doubleOptsList;
+	
+	// Public accessor methods:
+	public BigInteger getX() { return _x; }
+	
+	// Convenience methods for option parser:
+	public void addNewOption(String flag, String opt) { this._optsList.add(new Option(flag, opt)); }
+	public void addNewArg(String arg) { this._argsList.add(arg); }
+	public void addDoubleOpt(String dOpt) { this._doubleOptsList.add(dOpt); }
+	
+	static public void main(String[] args) {
+		DBController controller = new DBController();
+
+	    for (int i = 0; i < args.length; i++) {
+	        switch (args[i].charAt(0)) {
+	        case '-':
+	            if (args[i].length() < 2)
+	                throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	            if (args[i].charAt(1) == '-') {
+	                if (args[i].length() < 3)
+	                    throw new IllegalArgumentException("Not a valid argument: "+args[i]);
+	                // --opt
+	                controller.addDoubleOpt(args[i].substring(2, args[i].length()));
+	            } else {
+	                if (args.length-1 == i)
+	                    throw new IllegalArgumentException("Expected arg after: "+args[i]);
+	                // -opt
+	                controller.addNewOption(args[i], args[i+1]);
+	                i++;
+	            }
+	            break;
+	        default:
+	            // arg
+	            controller.addNewArg(args[i]);
+	            break;
+	        }
+	    }
+	    // 0.1. receive call from somewhere to generate n codes, using CodeSpace
+	    // 1. get current x value from the database. n and codespace have been passed in.
+	    // 2. generate n random BigIntegers, from x, using CodeSpace
+	    // 3. translate BigIntegers into code strings
+	    // 4. Build Code objects from BigInteger, code string, and x used to generate it.
+	    // 5. Package Code objects into an ArrayList
+	    // 6. Shuffle the ArrayList using optional external random source.
+	    // 7. Re-commit new value of x to the database.
+	    // 8. Commit the contents of the codelist to the database.
+	    // 
+	    controller.initialiseFromDB();
+	    CodeSpace space = new CodeSpace(10, true);
+	    CodeFactory sGenerator = new CodeFactory(controller.getX(), space.getPermutations());
+	    ArrayList<BigInteger> intList = sGenerator.getShuffledBigIntList(250);
+	    ArrayList<String> strList = space.getCodeStrings(intList);
+	    for (String str : strList) System.out.println(str);
+	}
+		
+	private void initialiseFromDB() {
+		// TODO: implement method to retrieve current x value from database and set instance value x
+		// While no DB exists, pass in x from the command line using parser
+		_optsList = new ArrayList<Option>();
+		_argsList = new ArrayList<String>();
+		_doubleOptsList = new ArrayList<String>();
+		for (Option opt: this._optsList) {
+			if (opt.flag == "-x") _x = new BigInteger(opt.opt);
+		}
+	}
+	
+	private void writeStateToDB() {
+		// TODO: implement method to update database with current generation etc..
+	}
+}

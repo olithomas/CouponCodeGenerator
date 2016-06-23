@@ -1,0 +1,36 @@
+package engine;
+
+import java.math.BigInteger;
+
+public class CodeRequest {
+	
+	private class Code {
+		private BigInteger _integerVal;
+		private String _codeString;
+		private BigInteger _xVal;
+		
+		public Code(BigInteger integerVal, String codeString, BigInteger xVal) {
+			_integerVal = integerVal;
+			_codeString = codeString;
+			_xVal = xVal;
+		}
+	}
+	
+	private BigInteger _x;
+	private CodeSpace _cs;
+	private int _n;
+	
+	public BigInteger getX() { return _x; }
+	public void setX(BigInteger _x) { this._x = _x; }
+	public CodeSpace getCodeSpace() { return _cs; }
+	public void setCodeSpace(CodeSpace _cs) { this._cs = _cs; }
+	public int getN() { return _n; }
+	public void setN(int _n) { this._n = _n; }
+
+	public CodeRequest(CodeSpace cs, int n) {
+		_cs = cs;
+		_n = n;
+		
+	}
+
+}

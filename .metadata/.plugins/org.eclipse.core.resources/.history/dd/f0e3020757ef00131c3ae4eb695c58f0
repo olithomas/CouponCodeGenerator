@@ -1,0 +1,31 @@
+package engine;
+
+import java.math.BigInteger;
+
+public class Code {
+	private final BigInteger _integerVal;
+	private final String _codeString;
+	private final BigInteger _xVal;
+	
+	public BigInteger getIntegerVal() {
+		return _integerVal;
+	}
+
+	public String getCodeString() {
+		return _codeString;
+	}
+
+	public BigInteger getXVal() {
+		return _xVal;
+	}
+
+	public Code(BigInteger integerVal, String codeString, BigInteger xVal) {
+		_integerVal = integerVal;
+		_codeString = codeString;
+		_xVal = xVal;
+	}
+	
+	public String toString() {
+		return "X = " + _xVal + ",int Value = " + _integerVal + ",string Value = " + _codeString + "\n";
+	}
+}

@@ -1,0 +1,37 @@
+1405427950281	Delete element
+1405427960328	Copy compilation unit
+1405428023711	Rename field '_codeListTable'
+1405428030809	Rename field '_codeListTableModel'
+1405428436133	Rename local variable 'codeListScrollPane'
+1405429145940	Rename local variable '_codeInfoPanel'
+1405429207950	Rename local variable 'gl__codeInfoPanel'
+1405429585663	Rename local variable 'codeListScrollPane'
+1405429665301	Rename local variable 'codeListScrollPane'
+1405429724332	Rename local variable 'gl__codeListPanel'
+1405429753223	Rename local variable '_codeListPanel'
+1405429815390	Rename local variable 'panel'
+1405429843408	Rename local variable 'gl_panel'
+1405430507086	Rename method 'refreshCodesList'
+1405430530876	Rename method 'refreshCodeData'
+1405430563028	Rename method 'getActiveCodeFromTable'
+1405430683757	Rename method 'generateCodes'
+1405432732626	Copy compilation unit
+1405436026683	Rename method 'inititialise'
+1405436471337	Rename method 'getCodeSpaceById'
+1405436925566	Rename field '_codeLen'
+1405436954176	Rename field '_excludes'
+1405451161725	Delete element
+1405452756037	Rename method 'setTableActiveStateFromUserId'
+1405688734449	Delete element
+1405689603463	Rename local variable 'codeSpacesArray'
+1405689627596	Rename field '_codeSpaceSelectComboModel'
+1405690437134	Rename local variable 'UsersArray'
+1405690446353	Rename local variable 'UsersArray'
+1405691036101	Rename field 'testCodes'
+1405809204416	Rename type 'BackEnd'
+1405809215336	Rename type 'FrontEnd'
+1405809442426	Rename method 'allocateCodes'
+1405809499849	Rename method 'generateCodesForUser'
+1405868659729	Delete element
+1405871801080	Rename method 'setCodeData'
+1405882592201	Rename field '_codeOwner'

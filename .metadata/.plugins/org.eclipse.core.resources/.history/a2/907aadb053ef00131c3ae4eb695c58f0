@@ -1,0 +1,64 @@
+package engine;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.math.BigInteger;
+
+public class CodeSpace {
+	
+	private static final List<Character> UNREADABLES = Arrays.asList('I', 'L', 'O', 'S', '0', '1', '5');
+	
+	private int _codeSize; // Number of characters in each code (default = 10)
+	private boolean _isForReading; // Contain non-readable characters or not
+	private List<Character> _charSet; // List of all the characters in the code set
+	private BigInteger _charSetLen; // Number of characters in the codeSet
+	private BigInteger _permutations; // Max permutations of code space
+	private BigInteger _P; // Prime number limit for quadratic residue algorithm
+	private BigInteger _halfP; // Convenience instance of BigInteger for quadratic residue algorithm
+
+	
+	// Public accessor methods:
+	public BigInteger getPermutations() { return _permutations; }
+	public BigInteger getP() { return _P; }
+	public BigInteger getHalfP() { return _halfP; }
+
+	public CodeSpace(int codeSize, boolean isForReading) {
+		_codeSize = codeSize;
+		_isForReading = isForReading;
+		initCharSet();
+		// _permutations = n!/(n-r)! where n = _charSetLen and r = _codeSize
+		BigInteger nFact = CodeFactory.getFactorial(_charSetLen);
+		BigInteger nMinusRFact = CodeFactory.getFactorial(_charSetLen.subtract(BigInteger.valueOf(_codeSize)));
+		_permutations = nFact.divide(nMinusRFact);
+		PrimeManager pManager = new PrimeManager();
+		_P = pManager.getBiggestPrime(_permutations);
+		_halfP = _P.divide(BigInteger.valueOf(2));
+	}
+	
+	private void initCharSet() {
+		List<Character> charSet = new ArrayList<Character>();
+		// First the alphabet..
+		for(char a = 'A'; a <= 'Z';a++) if (isReadable(a)) charSet.add(a);
+		// Then the numbers..
+		for(char n = '0'; n <= '9';n++) if (isReadable(n)) charSet.add(n);
+		// now get the size of the character set and set the local..
+		_charSetLen = BigInteger.valueOf(charSet.size());
+		_charSet = charSet;
+	}
+
+	private boolean isReadable(char c) {
+		boolean result = true;
+		for (char u : CodeSpace.UNREADABLES) {
+			// If this code is for reading (i.e. Unreadables should be marked unreadable) return false:
+			if (_isForReading && c == u) result = false;
+		}
+		return result;
+	}
+
+	public String getCodeString(BigInteger intVal) {
+		// TODO Auto-generated method stub
+		return intVal.toString();
+	}
+
+}

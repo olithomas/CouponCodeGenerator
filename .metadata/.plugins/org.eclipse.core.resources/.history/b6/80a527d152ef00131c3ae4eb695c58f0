@@ -1,0 +1,46 @@
+package testsuite;
+
+import static org.junit.Assert.*;
+
+import java.math.BigInteger;
+import engine.*;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+public class AllTests {
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+	}
+
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
+	}
+
+	@Before
+	public void setUp() throws Exception {
+	}
+
+	@After
+	public void tearDown() throws Exception {
+	}
+
+	@Test
+	public void getFactorialTest() {
+		// max codeset size = 32 + 10 = 42
+		// Biggest call will be 42!
+		BigInteger valueOf10 = BigInteger.valueOf(10);
+		BigInteger valueOf42 = BigInteger.valueOf(42);
+		BigInteger fact10 = new BigInteger("3628800");
+		BigInteger fact42 = new BigInteger("1405006117752879898543142606244511569936384000000000");
+		org.junit.Assert.assertEquals(fact10, CodeFactory.getFactorial(valueOf10));
+		org.junit.Assert.assertEquals(fact42, CodeFactory.getFactorial(valueOf42));
+	}
+	
+	// public void 
+
+}

@@ -1,0 +1,16 @@
+1402300662882	Rename type 'CodeFactory'
+1402301243656	Rename local variable 'n'
+1402301976764	Rename field '_codeSize'
+1402301988121	Rename local variable 'codeSize'
+1402397295580	Rename method 'getRandomBigInt'
+1402398916804	Rename local variable 'space'
+1402402722760	Delete element
+1402408451992	Rename local variable 'set'
+1402409198424	Rename local variable 'isNotDuplicate'
+1402409252169	Rename local variable 'isNotDuplicate'
+1402410634533	Rename field '_charSetLen'
+1402413285411	Rename method 'translateToNonReadable'
+1402436134678	Rename field '_x'
+1402436151520	Rename local variable 'x'
+1402479179751	Delete element
+1402479185585	Delete element

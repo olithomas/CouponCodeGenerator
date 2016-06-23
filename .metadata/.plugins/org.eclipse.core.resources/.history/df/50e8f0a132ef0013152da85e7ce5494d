@@ -1,0 +1,9 @@
+package engine;
+
+public class CodeRequest {
+
+	public CodeRequest() {
+		// TODO Auto-generated constructor stub
+	}
+
+}

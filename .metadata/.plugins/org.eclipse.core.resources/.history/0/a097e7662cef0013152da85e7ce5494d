@@ -1,0 +1,75 @@
+package engine;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.math.BigInteger;
+
+public class CodeSpace {
+	
+	private static final List<Character> UNREADABLES = Arrays.asList('I', 'L', 'O', 'S', '0', '1', '5');
+	
+	private int _codeSize;
+	private boolean _isForReading;
+	private List<Character> _charSet;
+	private BigInteger _charSetLen;
+	private BigInteger _permutations;
+	
+	// Public accessor methods:
+	public BigInteger getPermutations() { return _permutations; }
+
+	public CodeSpace(int codeSize, boolean isForReading) {
+		_codeSize = codeSize;
+		_isForReading = isForReading;
+		initCharSet();
+		// _perms = n!/(n-r)! where n = _charSetLen and r = _codeSize
+		_permutations = getFactorial(_charSetLen).divide(
+						getFactorial(_charSetLen.subtract(BigInteger.valueOf(_codeSize))));
+	}
+	
+	private void initCharSet() {
+		List<Character> charSet = new ArrayList<Character>();
+		// First the alphabet..
+		for(char a = 'A'; a <= 'Z';a++) if (isReadable(a)) charSet.add(a);
+		// Then the numbers..
+		for(char n = '0'; n <= '9';n++) if (isReadable(n)) charSet.add(n);
+		// now get the size of the character set and set the local..
+		_charSetLen = BigInteger.valueOf(charSet.size());
+		_charSet = charSet;
+	}
+
+	private boolean isReadable(char c) {
+		boolean result = true;
+		for (char u : CodeSpace.UNREADABLES) {
+			// If this code is for reading (i.e. Unreadables should be marked unreadable) return false:
+			if (_isForReading && c == u) result = false;
+		}
+		return result;
+	}
+	
+	private static BigInteger getFactorial(BigInteger n) {
+	    BigInteger result = BigInteger.ONE;
+
+	    while (!n.equals(BigInteger.ZERO)) {
+	        result = result.multiply(n);
+	        n = n.subtract(BigInteger.ONE);
+	    }
+
+	    return result;
+	}
+
+	public ArrayList<String> getCodeStrings(ArrayList<BigInteger> intList) {
+		ArrayList<String> codeList = new ArrayList<String>();
+		for (BigInteger cInt : intList) {
+			String thisCode = getCodeString(cInt);
+			codeList.add(thisCode);
+		}
+		return codeList;
+	}
+
+	private String getCodeString(BigInteger cInt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

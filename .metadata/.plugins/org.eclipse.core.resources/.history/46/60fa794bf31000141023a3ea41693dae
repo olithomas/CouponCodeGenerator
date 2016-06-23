@@ -1,0 +1,225 @@
+package com.huuta.examplefrontend;
+
+import com.codefarm.engine.Code;
+import com.codefarm.interaction.*;
+
+import java.awt.BorderLayout;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Observer;
+import java.util.Observable;
+
+import javax.swing.JTabbedPane;
+
+public class FrontEndWindow extends JFrame implements Observer {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private JPanel _contentPane;
+	private BackEndContext _backEnd;
+	private FrontEndContext _frontEnd;
+	private String _myIP;
+	private boolean _connected;
+	private boolean _authenticated;
+	private JMenuItem _mntmConnectToBack;
+	private JMenuItem _mntmAuthenticate;
+	private JMenuItem _mntmRegisterFrontEnd;
+	private JMenuItem _mntmCsRegister;
+	private JTabbedPane _tabbedPane;
+	private UserTab _userTab; // is a JPanel;
+	
+
+	public String getIP() { return _myIP; }
+	
+	/**
+	 * Create the frame.
+	 */
+	public FrontEndWindow(BackEndContext backEnd, String frontEndIP) {
+		_connected = false;
+		_authenticated = false;
+		_myIP = frontEndIP;
+		_backEnd = backEnd;
+		initialise();
+	}
+	
+	private void connect() {
+		String backEndIP = "";
+		while (backEndIP != null) {
+			backEndIP = JOptionPane.showInputDialog(
+				this, "Enter the IP address of the back end:", "Back End IP Address", JOptionPane.QUESTION_MESSAGE
+				);
+			if (backEndIP != null) {
+				boolean connected = _backEnd.connect(_myIP, backEndIP);
+				if (!connected) {
+					JOptionPane.showMessageDialog(this, "Incorrect IP address", "Please try again",JOptionPane.ERROR_MESSAGE);
+				} else {
+					_connected = true;
+					backEndIP = null;
+					this.setTitle(this.getTitle() + " (Connected)");
+					_mntmConnectToBack.setEnabled(false);
+					_mntmAuthenticate.setEnabled(true);
+				}
+			}
+		}
+	}
+	
+	private void authenticate() {
+		String password = "";
+		while (password != null) {
+			password = JOptionPane.showInputDialog(
+				this, "Enter the back end password:", "Back End Password", JOptionPane.QUESTION_MESSAGE
+				);
+			if (password != null) {
+				boolean authenticated = _backEnd.authenticateFrontEnd(_myIP, password);
+				if (!authenticated) {
+					JOptionPane.showMessageDialog(this, "Incorrect Password", "Please try again", JOptionPane.ERROR_MESSAGE);
+				} else {
+					_authenticated = true;
+					password = null;
+					this.setTitle(this.getTitle() + " (authenticated)");
+					_mntmConnectToBack.setEnabled(false);
+					_mntmAuthenticate.setEnabled(false);
+					_mntmRegisterFrontEnd.setEnabled(true);
+				}
+			}
+		}
+	}
+	
+	private void register() {
+		String frontEndName = JOptionPane.showInputDialog(
+				this, "Enter the Front End Name", "Register Front End", JOptionPane.QUESTION_MESSAGE
+				);
+		_frontEnd = _backEnd.registerFrontEnd(_myIP, frontEndName);
+		// Create the user tab
+		_userTab = new UserTab(_frontEnd);
+		// and add it to the tabbed pane
+		_tabbedPane.addTab("Users", _userTab);
+		// Sort out the control properties..
+		_mntmRegisterFrontEnd.setEnabled(false);
+		_mntmAuthenticate.setEnabled(false);
+		this.setTitle("Front End: " + frontEndName + " (Registered)");
+		_mntmCsRegister.setEnabled(true);
+	}
+	
+	private void addCodeSpace() {
+		AddCodeSpaceDialog csd = new AddCodeSpaceDialog(_frontEnd);
+		CodeSpace newCodeSpace;
+		String tabTitle;
+		csd.setLocationRelativeTo(this);
+		csd.setVisible(true);
+		if (csd.isCancelled()) return;
+		if (csd.hasExcludes()) {
+			int csid = _frontEnd.addCodeSpace(csd.getCodeLen(), csd.getExcludes().toCharArray(), csd.getCodeSpaceName());
+			newCodeSpace = _frontEnd.getCodeSpace(csid);
+		} else {
+			int csid = _frontEnd.addCodeSpace(csd.getCodeLen(), csd.getCodeSpaceName());
+			newCodeSpace = _frontEnd.getCodeSpace(csid);
+		}
+		if (csd.isUserOwned()) {
+			newCodeSpace.setOwner(csd.getSelectedUser().getUserId(), Code.USER_TYPE);
+			tabTitle = newCodeSpace.getCodeSpaceName() + " (" + csd.getSelectedUser().toString() + ")";
+		} else {
+			newCodeSpace.setOwner(_frontEnd.getFrontEndId(), Code.FRONTEND_TYPE);
+			tabTitle = newCodeSpace.getCodeSpaceName();
+		}
+		// Create the code space tab..
+		CodeSpaceTab cst = new CodeSpaceTab(_frontEnd, newCodeSpace.getCodeSpaceId());
+		// and add it to the tabbed pane..
+		_tabbedPane.addTab(tabTitle, cst);
+		// and finish..
+		csd.dispose();
+	}
+
+	private void initialise() {
+		this.setTitle("Front End: - " + _myIP);
+		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		setBounds(100, 100, 784, 592);
+		
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		JMenu _menuFrontEnds = new JMenu("Manage Front End");
+		menuBar.add(_menuFrontEnds);
+		
+		_mntmConnectToBack = new JMenuItem("Connect to Back End");
+		_mntmConnectToBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				connect();
+			}
+		});
+		_menuFrontEnds.add(_mntmConnectToBack);
+		
+		_mntmAuthenticate = new JMenuItem("Authenticate Front End");
+		_mntmAuthenticate.setEnabled(false);
+		_mntmAuthenticate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				authenticate();
+			}
+		});
+		_menuFrontEnds.add(_mntmAuthenticate);
+		
+		_mntmRegisterFrontEnd = new JMenuItem("Register Front End");
+		_mntmRegisterFrontEnd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				register();
+			}
+		});
+		_mntmRegisterFrontEnd.setEnabled(false);
+		_menuFrontEnds.add(_mntmRegisterFrontEnd);
+		
+		_mntmCsRegister = new JMenuItem("Register Code Space");
+		_mntmCsRegister.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				addCodeSpace();
+			}
+		});
+		_mntmCsRegister.setEnabled(false);
+		_menuFrontEnds.add(_mntmCsRegister);
+		_contentPane = new JPanel();
+		_contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		_contentPane.setLayout(new BorderLayout(0, 0));
+		setContentPane(_contentPane);
+		
+		
+		_tabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
+		_contentPane.add(_tabbedPane, BorderLayout.CENTER);
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public boolean isConnected() {
+		return _connected;
+	}
+
+	public void setConnected(boolean connected) {
+		_connected = connected;
+	}
+
+	public boolean isAuthenticated() {
+		return _authenticated;
+	}
+
+	public void setAuthenticated(boolean authenticated) {
+		_authenticated = authenticated;
+	}
+}

@@ -1,0 +1,54 @@
+package engine;
+
+import java.util.ArrayList;
+import java.math.BigInteger;
+
+public abstract class CodeFactory {
+	/*
+	 * Constants to limit the number of permutations generated in one go: 
+	 */
+	private static final int MIN_PERM = 250;
+	private static final int MAX_PERM = 10000;
+
+	public static ArrayList<BigInteger> getNBigIntsFromX(CodeSpace cs, int n, BigInteger x) {
+		/*
+		 * n is the number of random unique integers to generate in one go.
+		 * The function forces the returned permutation count between MIN_PERM and MAX_PERM
+		 * The MIN_PERM value exists to keep the shuffled ArrayList sufficiently large to ensure
+		 * good random distribution of the permutations.
+		 * The MAX_PERM value sets a limit on the number of permutations to stop large values
+		 * passed in error from killing the software!
+		 */	
+		if (n < CodeFactory.MIN_PERM) n = CodeFactory.MIN_PERM;
+		if (n > CodeFactory.MAX_PERM) n = CodeFactory.MAX_PERM;
+		
+		BigInteger xLimit = x.add(BigInteger.valueOf(n));
+		BigInteger nextPerm;
+		ArrayList<BigInteger> returnArray = new ArrayList<BigInteger>();
+		
+		for (; x.compareTo(xLimit) < 0; x = x.add(BigInteger.ONE)) {
+			nextPerm = generateRandomBigInt(cs, x);
+			returnArray.add(nextPerm);
+		}
+		return returnArray;
+	}
+	
+	private static BigInteger generateRandomBigInt(CodeSpace cs, BigInteger x) {
+		/* 
+		 * x	=   An integer that satisfies 0 < x <= (p/2) where p is the primary seed
+		 * p	=	A prime number as defined in the class constant P (see above)
+		 * r	=	the remainder (quadratic residue) of the squae of x (mod P)
+		 */
+		BigInteger p = cs.getP();
+		BigInteger halfP = cs.getHalfP();
+		
+		BigInteger r;
+		r = x.multiply(x).mod(p);
+		if (x.compareTo(halfP) <= 0) {
+			return r;
+		} else {
+			return p.subtract(r);
+		}
+	}
+	
+}

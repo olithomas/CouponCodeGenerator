@@ -1,0 +1,305 @@
+package com.huuta.examplefrontend;
+
+import javax.swing.JPanel;
+
+import com.codefarm.engine.Code;
+import com.codefarm.interaction.CodeSpace;
+import com.codefarm.interaction.FrontEndContext;
+
+import javax.swing.JScrollPane;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+
+import java.awt.GridLayout;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JButton;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JLabel;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+public class CodeSpaceTab extends JPanel implements Observer {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private CodeSpace _myCs;
+	private int _myCsId;
+	private FrontEndContext _frontEnd;
+	private int _codeLen;
+	private String _excludes;
+	private int _codeCount;
+	private String _name;
+	private GridLayout _layout;
+	private JTable _codeListTable;
+	private DefaultTableModel _codeListTableModel;
+	private JLabel _csNameLabel;
+	private JLabel _codeLenLabel;
+	private JLabel _excludesLabel;
+	private JLabel _codesCountLabel;
+	private CodeInfoPanel _codeInfoPanel;
+	private JButton _btnAddCodes;
+	private JLabel _label;
+	private JLabel _csOwnerLabel;
+	private String _csOwner;
+	private JButton _btnViewupdateCode;
+	private JLabel _lblAddCodes;
+	private Code _selectedCode;
+	private boolean _isUserOwned;
+	
+	/**
+	 * Create the panel.
+	 */
+	public CodeSpaceTab(FrontEndContext frontEnd, int codeSpaceId) {
+		_frontEnd = frontEnd;
+		_frontEnd.addObserver(this);
+		_myCsId = codeSpaceId;
+		_myCs = _frontEnd.getCodeSpace(_myCsId);
+		_isUserOwned = false;
+		if (_myCs.getOwnerType() == Code.USER_TYPE) _isUserOwned = true;
+		_name = _myCs.getCodeSpaceName();
+		_codeLen = _myCs.getCodeLen();
+		if (_myCs.hasExcludes()) {
+			_excludes = String.valueOf(_myCs.getExcludes());
+		} else {
+			_excludes = "<NULL>";
+		}
+		_codeCount = _frontEnd.getCodesByCodeSpaceId(_myCsId).size();
+		if (_isUserOwned) _csOwner = _frontEnd.getUser(_myCs.getOwnerId()).toString() + " (User)";
+		else _csOwner = _frontEnd.getName() + " (FrontEnd)";
+		
+		initialise();
+		refreshCodesList();
+	}
+	
+	private void generateCodes() {
+		if (!_isUserOwned) {
+			JOptionPane.showMessageDialog(this, "Code Space is not owned by a user.", "Can't generate codes.", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		String n = JOptionPane.showInputDialog(this, "How many codes?", "Specify number of codes.", JOptionPane.QUESTION_MESSAGE);
+		if (n != null) {
+			// This is a user-owned code space so inherit the code owner from the code space:..
+			_frontEnd.addCodes(Integer.valueOf(n), _myCsId, _myCs.getOwnerId());
+			refreshCodesList();
+		}
+	}
+	
+	private void showCodeDataDialog() {
+		if (!_isUserOwned) {
+			JOptionPane.showMessageDialog(this, "Code Space is not owned by a user.", "Can't view/update codes from here.", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		if (_frontEnd.getCodesByCodeSpaceId(_myCsId).size() == 0) return;
+		SetCodeDataDialog scdd = new SetCodeDataDialog(_myCsId, Code.CODE_SPACE_TYPE, _frontEnd);
+		scdd.setLocationRelativeTo(this);
+		scdd.setVisible(true);
+	}
+	
+	private void initialise() {
+		
+		ListSelectionListener listSelectionListener = new MySelectionListener();
+		
+		_layout = new GridLayout(2, 1, 0, 0);
+		setLayout(_layout);
+		
+		JPanel _codeListPanel = new JPanel();
+		add(_codeListPanel);
+		
+		_btnAddCodes = new JButton("Add Codes to Code Space");
+		_btnViewupdateCode = new JButton("View/Update Code");
+		_btnViewupdateCode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				showCodeDataDialog();
+			}
+		});
+		
+		_lblAddCodes = new JLabel("(Owner is Inherited from Code Space)");
+		
+		// If the owner is not a user then don't give the user the option to generate codes (must be done in the user tab)
+		if (_myCs.getOwnerType() == Code.FRONTEND_TYPE) {
+			_btnAddCodes.setVisible(false);
+			_lblAddCodes.setVisible(false);
+			_btnViewupdateCode.setVisible(false);
+		}
+		
+		_btnAddCodes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				generateCodes();
+			}
+		});
+		
+		_codeListTable = new JTable();
+		_codeListTableModel = new DefaultTableModel(
+				new Object[0][0],
+				new String[] { "Code", "Created", "Owner" }) 
+				{
+					Class[] columnTypes = new Class[] {
+						String.class, String.class, String.class
+					};
+					public Class getColumnClass(int columnIndex) {
+						return columnTypes[columnIndex];
+					}
+					boolean[] columnEditables = new boolean[] {
+						false, false, false, false
+					};
+					public boolean isCellEditable(int row, int column) {
+						return columnEditables[column];
+					}
+				};
+		_codeListTable.setModel(_codeListTableModel);
+		_codeListTable.setFont(FrontEndWindow.DEFAULT_TABLE_FONT);
+		
+		_codeListTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+		_codeListTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+		
+		_codeListTable.getSelectionModel().addListSelectionListener(listSelectionListener);
+		
+		JScrollPane codeListScrollPane = new JScrollPane(_codeListTable);
+		
+		JLabel lblCodeSpaceName = new JLabel("Code Space Name:");
+		JLabel lblCodeLength = new JLabel("Code Length:");
+		JLabel lblExcludes = new JLabel("Excludes:");
+		JLabel lblTotalCodes = new JLabel("Total Codes:");
+		_csNameLabel = new JLabel(_name);
+		_codeLenLabel = new JLabel(String.valueOf(_codeLen));
+		_excludesLabel = new JLabel(_excludes);
+		_codesCountLabel = new JLabel(String.valueOf(_codeCount));
+		
+		_label = new JLabel("Code Space Owner:");
+		
+		_csOwnerLabel = new JLabel(_csOwner);
+		
+		GroupLayout gl__codeListPanel = new GroupLayout(_codeListPanel);
+		gl__codeListPanel.setHorizontalGroup(
+			gl__codeListPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl__codeListPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl__codeListPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(codeListScrollPane, GroupLayout.DEFAULT_SIZE, 653, Short.MAX_VALUE)
+						.addGroup(gl__codeListPanel.createSequentialGroup()
+							.addComponent(lblCodeSpaceName)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_csNameLabel)
+							.addGap(18)
+							.addComponent(lblCodeLength)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_codeLenLabel)
+							.addGap(18)
+							.addComponent(lblExcludes)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_excludesLabel)
+							.addGap(18)
+							.addComponent(lblTotalCodes)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_codesCountLabel)
+							.addGap(18)
+							.addComponent(_label)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_csOwnerLabel))
+						.addGroup(gl__codeListPanel.createSequentialGroup()
+							.addComponent(_btnAddCodes)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(_lblAddCodes)
+							.addGap(18)
+							.addComponent(_btnViewupdateCode)))
+					.addContainerGap())
+		);
+		gl__codeListPanel.setVerticalGroup(
+			gl__codeListPanel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl__codeListPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl__codeListPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblCodeSpaceName)
+						.addComponent(_csNameLabel)
+						.addComponent(lblCodeLength)
+						.addComponent(_codeLenLabel)
+						.addComponent(lblExcludes)
+						.addComponent(_excludesLabel)
+						.addComponent(lblTotalCodes)
+						.addComponent(_codesCountLabel)
+						.addComponent(_label)
+						.addComponent(_csOwnerLabel))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(codeListScrollPane, GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl__codeListPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(_btnAddCodes)
+						.addComponent(_lblAddCodes)
+						.addComponent(_btnViewupdateCode))
+					.addContainerGap())
+		);
+		_codeListPanel.setLayout(gl__codeListPanel);
+		
+		_codeInfoPanel = new CodeInfoPanel();
+		add(_codeInfoPanel);
+	}
+	
+	private void refreshCodesList() {
+		_name = _myCs.getCodeSpaceName();
+		_codeLen = _myCs.getCodeLen();
+		if (_myCs.hasExcludes()) {
+			_excludes = String.valueOf(_myCs.getExcludes());
+		} else {
+			_excludes = "<NULL>";
+		}
+		_codeCount = _frontEnd.getCodesByCodeSpaceId(_myCsId).size();
+		if (_isUserOwned) _csOwner = _frontEnd.getUser(_myCs.getOwnerId()).toString();
+		else _csOwner = _frontEnd.getName();
+		_csNameLabel.setText(_name);
+		_codeLenLabel.setText(String.valueOf(_codeLen));
+		_excludesLabel.setText(_excludes);
+		_codesCountLabel.setText(String.valueOf(_codeCount));
+		_csOwnerLabel.setText(_csOwner);
+		int rowCount = _codeListTableModel.getRowCount();
+		for (int i = rowCount; i > 0; i--) {
+			_codeListTableModel.removeRow(i - 1);
+		}
+		
+		for (Code code : _frontEnd.getCodesByCodeSpaceId(_myCsId)) {
+			String userInfo;
+			if (code.getOwnerType() == Code.FRONTEND_TYPE && code.getOwnerId() == -1) {
+				userInfo = "No Owner Set";
+			} else if (code.getOwnerType() == Code.FRONTEND_TYPE && code.getOwnerId() != -1) {
+				userInfo = _frontEnd.getName();
+			} else {
+				userInfo = _frontEnd.getUser(code.getOwnerId()).toString();
+			}
+			Object[] data = new Object[] {
+					code.getStringVal(), code.getCreationTimestamp().toString(), 
+					userInfo
+			};
+			_codeListTableModel.addRow(data);
+		}
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		refreshCodesList();
+	}
+	
+	private class MySelectionListener implements ListSelectionListener {
+		@Override
+		public void valueChanged(ListSelectionEvent e) {
+			ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+			if (!e.getValueIsAdjusting()) {
+				int index = lsm.getMaxSelectionIndex();
+				if (index != -1) {
+					String codeStr = (String) _codeListTable.getValueAt(index, 0);
+					_selectedCode = _frontEnd.getCode(codeStr);
+					_codeInfoPanel.refreshCodeData(_selectedCode);
+				}
+			}
+		}
+	}
+}

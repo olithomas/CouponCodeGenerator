@@ -1,0 +1,176 @@
+package com.huuta.examplefrontend;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+import com.codefarm.engine.Code;
+import com.codefarm.interaction.FrontEndContext;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JTextArea;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+
+public class SetCodeDataDialog extends JDialog {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final JPanel contentPanel = new JPanel();
+	private DefaultComboBoxModel<Object> _codeSelectComboModel;
+	private JComboBox<Object> _codeSelectComboBox;
+	private JTextArea _codeDataText;
+	private CodeInfoPanel _codeInfoPanel;
+	private FrontEndContext _frontEnd;
+	private int _userId;
+	private Code _selectedCode;
+	private JLabel _lblUpdated;
+	
+	/**
+	 * Create the dialog.
+	 */
+	public SetCodeDataDialog(int searchKey, FrontEndContext frontEnd) {
+		_userId = searchKey;
+		_frontEnd = frontEnd;
+		setResizable(false);
+		setTitle("Set code data for " + _frontEnd.getUser(_userId).toString() + ":");
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setModal(true);
+		Object[] codesArray = _frontEnd.getCodesByUserId(searchKey).toArray();
+		_codeSelectComboModel = new DefaultComboBoxModel<Object>(codesArray);
+		initialise();
+		updateCodeInfoPanel();
+	}
+	
+	private void updateCodeInfoPanel() {
+		_selectedCode = (Code) _codeSelectComboModel.getSelectedItem();
+		_codeInfoPanel.refreshCodeData(_selectedCode);
+		_lblUpdated.setVisible(false);
+		_codeDataText.setText("");
+	}
+	
+	private void updateCodeData() {
+		_frontEnd.setCodeData(_userId, _selectedCode, this._codeDataText.getText());
+		_codeInfoPanel.refreshCodeData(_selectedCode);
+		_lblUpdated.setVisible(true);
+	}
+	
+	private void endUpdate() {
+		this.setVisible(false);
+		this.dispose();
+	}
+	
+	private void initialise() {
+		setBounds(100, 100, 435, 537);
+		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
+		
+		JLabel lblSelectCode = new JLabel("Select Code:");
+		
+		_codeSelectComboBox = new JComboBox<Object>();
+		_codeSelectComboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				updateCodeInfoPanel();
+			}
+		});
+		_codeSelectComboBox.setModel(_codeSelectComboModel);
+		
+		JLabel lblNewData = new JLabel("New Data:");
+		
+		_codeDataText = new JTextArea();
+		_codeDataText.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				_codeDataText.setText("");
+				_lblUpdated.setVisible(false);
+			}
+		});
+		_codeDataText.setColumns(10);
+		
+		_codeInfoPanel = new CodeInfoPanel();
+		
+		JButton btnUpdate = new JButton("Update");
+		btnUpdate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				updateCodeData();
+			}
+		});
+		
+		_lblUpdated = new JLabel("Updated!");
+		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
+		gl_contentPanel.setHorizontalGroup(
+			gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_contentPanel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+						.addComponent(_codeDataText, GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE)
+						.addComponent(_codeSelectComboBox, 0, 399, Short.MAX_VALUE)
+						.addComponent(lblSelectCode)
+						.addGroup(gl_contentPanel.createSequentialGroup()
+							.addComponent(lblNewData)
+							.addGap(18)
+							.addComponent(btnUpdate)
+							.addGap(18)
+							.addComponent(_lblUpdated)))
+					.addContainerGap())
+				.addComponent(_codeInfoPanel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 419, Short.MAX_VALUE)
+		);
+		gl_contentPanel.setVerticalGroup(
+			gl_contentPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPanel.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(lblSelectCode)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(_codeSelectComboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(_codeInfoPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblNewData)
+						.addComponent(btnUpdate)
+						.addComponent(_lblUpdated))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(_codeDataText, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
+					.addContainerGap())
+		);
+		contentPanel.setLayout(gl_contentPanel);
+		{
+			JPanel buttonPane = new JPanel();
+			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+			getContentPane().add(buttonPane, BorderLayout.SOUTH);
+			{
+				JButton okButton = new JButton("Done");
+				okButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						endUpdate();
+					}
+				});
+				okButton.setActionCommand("OK");
+				buttonPane.add(okButton);
+				getRootPane().setDefaultButton(okButton);
+			}
+			{
+				JButton cancelButton = new JButton("Cancel");
+				cancelButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						endUpdate();
+					}
+				});
+				cancelButton.setActionCommand("Cancel");
+				buttonPane.add(cancelButton);
+			}
+		}
+	}
+}

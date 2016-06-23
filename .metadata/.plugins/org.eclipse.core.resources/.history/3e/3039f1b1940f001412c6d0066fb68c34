@@ -1,0 +1,274 @@
+package com.codefarm.interaction;
+
+import com.huuta.examplefrontend.*;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JOptionPane;
+import javax.swing.JButton;
+
+import java.awt.EventQueue;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+
+/**
+ * Demo class to show reference implementation of the Back End Context
+ * <p>
+ * Implements the CodeFarmInterface interface
+ * 
+ * @author Oliver Thomas
+ *
+ */
+
+public class BackEnd extends JFrame implements Observer {
+	
+	/**
+	 * Default serial version UID
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private String _backEndPassword;
+	private String _backEndIP;
+	private JPanel _contentPane;
+	private JTable _frontEndTable;
+	private DefaultTableModel _frontEndTableModel;
+	private Hashtable<String, FrontEnd> _frontEnds;
+	private Hashtable<String, FrontEndWindow> _frontEndWindows;
+	
+	public String getIpAddress() { return _backEndIP; }
+
+	public BackEnd(String ipAddress, String password) {
+		_backEndIP = ipAddress;
+		_backEndPassword = password;
+		_frontEnds = new Hashtable<String, FrontEnd>();
+		_frontEndWindows = new Hashtable<String, FrontEndWindow>();
+		initialise();
+	}
+	
+	public boolean connect(String frontEndWindowIP, String backEndIP) {
+		if (backEndIP.equals(_backEndIP)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean authenticateFrontEnd(String frontEndWindowIP, String password) throws IllegalStateException {
+		FrontEndWindow few = _frontEndWindows.get(frontEndWindowIP);
+		if (!few.isConnected()) throw new IllegalStateException("The Front End Window is not connected");
+		if (password.equals(_backEndPassword)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public FrontEnd registerFrontEnd(String frontEndWindowIP, String frontEndName) throws IllegalStateException {
+		FrontEndWindow few = _frontEndWindows.get(frontEndWindowIP);
+		if (!few.isConnected()) throw new IllegalStateException("The Front End Window is not connected");
+		if (!few.isAuthenticated()) throw new IllegalStateException("The Front End Window is not authenticated");
+		FrontEnd fe = new FrontEnd(frontEndName);
+		fe.setMyWindowIP(frontEndWindowIP);
+		fe.setRegistered(true);
+		_frontEnds.put(frontEndName, fe);
+		fe.addObserver(this);
+		// Re-draw the front ends table
+		refresh();
+		// and return the Front End
+		return fe;
+	}
+	
+	public void deRegisterFrontEnd() {
+		FrontEnd fe = this.getActiveFrontEndFromTable();
+		FrontEndWindow few;
+		if (fe == null) {
+			JOptionPane.showMessageDialog(this, "Please select a Front End to delete.", "Delete Front End", JOptionPane.ERROR_MESSAGE);
+		} else {
+			few = this.getActiveFrontEndWindowFromTable();
+			few.dispose();
+			_frontEnds.remove(fe.getName());
+			_frontEndWindows.remove(few.getIP());
+			refresh();
+		}
+	}
+	
+	/**
+	 * Create a new front end JFrame. The actual Front End object will be created during registration when the user 
+	 * does that through the front end JFrame
+	 */
+	private void createFrontEndWindow() {
+		String frontEndWindowIP = JOptionPane.showInputDialog(
+				this, "Enter the Front End Window IP", "Create front end window", JOptionPane.QUESTION_MESSAGE
+				);
+		FrontEndWindow few = new FrontEndWindow(this, frontEndWindowIP);
+		_frontEndWindows.put(frontEndWindowIP, few);
+		few.setVisible(true);
+	}
+	
+	private void refresh() {
+		int rowCount = _frontEndTableModel.getRowCount();
+		for (int i = rowCount; i > 0; i--) {
+			_frontEndTableModel.removeRow(i - 1);
+		}
+		
+		for (Map.Entry<String, FrontEnd> fe : _frontEnds.entrySet()) {
+			FrontEnd feVal = fe.getValue();
+			Object[] data = new Object[] {
+					feVal.getName(), feVal.getMyWindowIP(), feVal.getCreated(), 
+					feVal.getUserCount(), feVal.getCodeSpacesCount()	
+			};
+			_frontEndTableModel.addRow(data);
+		}
+	}
+	
+	
+	private FrontEnd getActiveFrontEndFromTable() {
+		FrontEnd fe;
+		int row;
+		String feName = "";
+		if ((row = this._frontEndTable.getSelectedRow()) == -1) {
+			return null;
+		} else {
+			feName = (String) this._frontEndTableModel.getValueAt(row, 0);
+			fe = _frontEnds.get(feName);
+			return fe;
+		}
+	}
+	
+	private FrontEndWindow getActiveFrontEndWindowFromTable() {
+		FrontEndWindow few;
+		int row;
+		String feWindowIP = "";
+		if ((row = this._frontEndTable.getSelectedRow()) == -1) {
+			return null;
+		} else {
+			feWindowIP = (String) this._frontEndTableModel.getValueAt(row, 1);
+			few = _frontEndWindows.get(feWindowIP);
+			return few;
+		}
+	}
+	
+	private void initialise() {
+		this.setTitle("Back End - " + _backEndIP);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 657, 409);
+		_contentPane = new JPanel();
+		_contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(_contentPane);
+		
+		JLabel lblFrontEnds = new JLabel("Front Ends:");
+		
+		_frontEndTable = new JTable();
+		_frontEndTableModel = new DefaultTableModel(
+				new Object[0][0],
+				new String[] { "Name", "IP Address", "Created", "Users", "Code Spaces" }) 
+				{
+					Class[] columnTypes = new Class[] {
+						String.class, String.class, String.class, Integer.class, Integer.class
+					};
+					public Class getColumnClass(int columnIndex) {
+						return columnTypes[columnIndex];
+					}
+					boolean[] columnEditables = new boolean[] {
+						false, false, false, false, false
+					};
+					public boolean isCellEditable(int row, int column) {
+						return columnEditables[column];
+					}
+				};
+		_frontEndTable.setModel(_frontEndTableModel);
+		
+		_frontEndTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+		_frontEndTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+		_frontEndTable.addMouseListener(new MouseAdapter() {
+			   public void mouseClicked(MouseEvent e) {
+			      if (e.getClickCount() == 2) {
+			         getActiveFrontEndWindowFromTable().setVisible(true);
+			         }
+			   }
+			});
+		
+		JScrollPane feTablePane = new JScrollPane(_frontEndTable);
+		
+		JButton btnAddFrontEnd = new JButton("Add Front End");
+		btnAddFrontEnd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				createFrontEndWindow();
+			}
+		});
+		
+		JButton btnDeleteFrontEnd = new JButton("Delete Front End");
+		btnDeleteFrontEnd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				deRegisterFrontEnd();
+			}
+		});
+		
+		JButton btnRefresh = new JButton("Refresh");
+		btnRefresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				refresh();
+			}
+		});
+		GroupLayout gl_contentPane = new GroupLayout(_contentPane);
+		gl_contentPane.setHorizontalGroup(
+			gl_contentPane.createParallelGroup(Alignment.TRAILING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+						.addComponent(feTablePane, GroupLayout.DEFAULT_SIZE, 621, Short.MAX_VALUE)
+						.addComponent(lblFrontEnds)
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(btnAddFrontEnd)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnDeleteFrontEnd)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnRefresh)))
+					.addContainerGap())
+		);
+		gl_contentPane.setVerticalGroup(
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addComponent(lblFrontEnds)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(feTablePane, GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnAddFrontEnd)
+						.addComponent(btnDeleteFrontEnd)
+						.addComponent(btnRefresh))
+					.addContainerGap())
+		);
+		_contentPane.setLayout(gl_contentPane);
+	}
+
+	public static void main(String args[]) {
+		EventQueue.invokeLater(new Runnable()
+	     {
+	         public void run()
+	         {
+	             //create GUI frame
+	        	 new BackEndContext("172.21.16.17", "backend1").setVisible(true);          
+	         }
+	     });
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		refresh();
+	}
+}

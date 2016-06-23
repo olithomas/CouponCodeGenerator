@@ -1,0 +1,5 @@
+1459291423009	Rename type 'Worker'
+1459291528120	Rename type 'WorkerFactory'
+1459292454325	Rename type 'Worker'
+1459294347902	Rename field 'myWorker'
+1459294425497	Rename method 'setupWorker'

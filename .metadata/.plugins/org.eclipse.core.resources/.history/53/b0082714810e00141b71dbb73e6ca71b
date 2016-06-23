@@ -1,0 +1,75 @@
+package com.huuta.examplefrontend;
+
+import java.awt.BorderLayout;
+import java.math.BigInteger;
+import java.util.ArrayList;
+
+import javax.swing.JFrame;
+
+import com.codefarm.engine.Code;
+import com.codefarm.interaction.CodeSpace;
+import com.codefarm.interaction.FrontEnd;
+
+public class TestLauncher {
+	
+	Code code;
+	FrontEnd fe;
+	CodeSpace cs;
+	private ArrayList<Code> testCodes;
+
+	public Code getCode() {
+		return code;
+	}
+
+	public TestLauncher() {
+		code = new Code(BigInteger.TEN, "000000000A");
+		code.setOwner(10, Code.USER_TYPE);
+		code.setCodeData("This is a test!");
+		fe = new FrontEnd("Test FE");
+		int csid = fe.addCodeSpace(10, "Test Code Space");
+		cs = fe.getCodeSpace(csid);
+		testCodes = fe.addCodes(10, csid);
+	}
+
+	public static void main(String[] args) {
+		TestLauncher tl = new TestLauncher();
+		// tl.codeInfoPanelDisplay();
+		// tl.codeSpaceTabDisplay();
+		tl.setCodeDataDialogDisplay();
+	}
+	
+	public void codeInfoPanelDisplay() {
+		CodeInfoPanel cip = new CodeInfoPanel();
+		cip.refreshCodeData(code);
+		JFrame frame = new JFrame();
+		frame.setLayout(new BorderLayout());
+		frame.add(cip, BorderLayout.CENTER);
+		frame.pack();
+		frame.setResizable(false);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	public void codeSpaceTabDisplay() {
+		CodeSpaceTab cst = new CodeSpaceTab(fe, cs.getCodeSpaceId());
+		JFrame frame = new JFrame();
+		frame.setLayout(new BorderLayout());
+		frame.add(cst, BorderLayout.CENTER);
+		frame.pack();
+		frame.setResizable(false);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	public void setCodeDataDialogDisplay() {
+		SetCodeDataDialog scd = new SetCodeDataDialog(fe);
+		JFrame frame = new JFrame();
+		frame.setLayout(new BorderLayout());
+		frame.add(scd, BorderLayout.CENTER);
+		frame.pack();
+		frame.setResizable(false);
+		frame.setVisible(true);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+
+}

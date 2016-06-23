@@ -1,0 +1,40 @@
+Quadratic residue algorithm
+
+Inputs:
+x   =   An integer 
+p   =   A prime number that is a solution to the congruence p=3(mod 4) - that is if p is divided by 4, the remainder is 3. The largest prime that is a solution to this is 4,294,967,291 (4.2 billion)
+
+An integer q is a quadratic residue (mod p) if it is congruent to x^2 where x is an integer that satisfies 0 < x <= p:
+
+x^2 = q (mod p)
+
+That is, if x^2 is divided by p then the remainder is the quadratic residue mod p (q)
+q will be unique as long as x < (p/2) (or 2x < p)
+but also p-q will also be unique for x > <p/2) (or 2x > p)
+
+pass in x (an integer)
+p = a prime that satisfies p=3(mod 4)
+r = the remainder of (x squared divided by p) - this is now the quadratic residue arrived at using the current value of x
+test x:
+    if x is less than or equal to (p/2) then return r (as r is unique where x < (p/2) - see above)
+    if x is greater than (p/2) then return p minus r (as p-r is also unique where x > (p/2) - see above)
+
+C++ function example:
+
+unsigned int UniqueRandomMapping(unsigned int x)
+{
+    const unsigned int p = 11; //any prime number satisfying p = 3 (mod 4)
+    unsigned int r = ((unsigned long long) x * x) % p;
+    if (x <= p / 2) return r;
+    else return p - r;
+}
+
+Remarks from    http://stackoverflow.com/questions/23049748/how-to-make-random-numbers-unique
+    For 32-bit integers, you may choose the largest prime number such that p = 3 (mod 4) which is less than 232 which is 4294967291.
+    Even though, this method gives you a 1-to-1 mapping for generating random number, it suffers from the clustering issue.
+    To improve the randomness of the aforementioned method, combine it with other unique random mapping methods such as XOR operator.
+	
+
+Fisher Yates Shuffle algorithm
+
+

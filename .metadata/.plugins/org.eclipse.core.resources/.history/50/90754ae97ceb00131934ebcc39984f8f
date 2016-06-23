@@ -1,0 +1,9 @@
+package engine;
+
+public class CodeSpace {
+
+	public CodeSpace(int codeSize, boolean is) {
+		// TODO Auto-generated constructor stub
+	}
+
+}

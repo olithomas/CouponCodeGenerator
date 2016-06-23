@@ -1,0 +1,78 @@
+1404205323245	Move file
+1404205324747	Move file
+1404205330389	Move file
+1404205331593	Move file
+1404211329764	Rename local variable 'missingCharSet'
+1404212202764	Rename local variable 'i'
+1404214598835	Rename method 'initCharSet'
+1404215836758	Rename method 'translateToReadable'
+1404216327605	Rename local variable 'tempReplacements'
+1404216340667	Rename local variable 'tailChars'
+1404216348689	Rename local variable 'tempReplacement'
+1404216820784	Rename local variable 'code'
+1404217957875	Rename field '_missingChars'
+1404218050684	Rename local variable 'charSet'
+1404218648388	Rename local variable 'missingLen'
+1404218721601	Rename local variable 'tempMissing2'
+1404219443207	Rename method 'toMissingRemovedString'
+1404219918604	Rename method 'getReadable'
+1404222170112	Delete element
+1404222175088	Delete element
+1404222653220	Rename method 'initMissingAndReplacements'
+1404227689551	Rename type 'RandomIntGenerator'
+1404227755736	Rename type 'CodeRequest'
+1404228195695	Rename local variable 'newReq'
+1404245106408	Rename local variable 'number'
+1404286213109	Delete element
+1404286265400	Delete element
+1404286274541	Delete element
+1404286332916	Move compilation unit
+1404286358515	Rename type 'Main'
+1404286492894	Rename type 'BackEnd'
+1404287006774	Rename type 'AlphaNumericCodeFormat'
+1404294984769	Rename field '_codeSpaceID'
+1404294999026	Rename method 'getCodeSpaceID'
+1404295009317	Rename method 'getID'
+1404295618822	Rename method 'getID'
+1404296061704	Rename local variable 'frontEndID'
+1404296614266	Rename local variable 'frontEndID'
+1404310733571	Rename local variable 'replacementIndex'
+1404314477143	Rename method 'initExcludesAndReplacements'
+1404316356210	Rename local variable 'result'
+1404317348348	Rename local variable 'codeFormat'
+1404317886659	Rename field '_codeFormat'
+1404375497838	Delete element
+1404375517923	Move package
+1404375559514	Rename package 'org.codefarm.examplefrontend'
+1404375746793	Rename type 'AlgorithmTests'
+1404378661298	Rename type 'CodeFormatterTest'
+1404389154821	Copy compilation unit
+1404389168930	Rename type 'CopyOfCodeFormatterTest2'
+1404391837130	Rename type 'CodeFormatterTest2'
+1404391846160	Rename type 'CodeFormatterTest1'
+1404391918747	Rename local variable 'maxExceptions'
+1404393667532	Rename local variable 'expectedFinalExcludes'
+1404393674566	Rename local variable 'expectedFinalReplacements'
+1404410040050	Move compilation unit
+1404410048053	Move compilation unit
+1404410054823	Move compilation unit
+1404410179312	Rename type 'RegisteredFrontEnd'
+1404413034985	Rename method 'getLastUpdate'
+1404413179987	Rename type 'CodeFarmFrontEnd'
+1404414442633	Rename method 'getPublicCodeData'
+1404414638163	Rename method 'getCodes'
+1404415757543	Rename field '_registeredFrontEnds'
+1404415912249	Move compilation unit
+1404417079522	Rename method 'getUserId'
+1404420271984	Rename method 'assignCodesToUser'
+1404421193353	Rename local variable 'codeSpace'
+1404421710666	Move compilation unit
+1404423533592	Encapsulate field '_frontEndId'
+1404423716332	Encapsulate field '_codeSpaceId'
+1404423731027	Encapsulate field '_frontEndId'
+1404425332933	Rename method 'isType'
+1404680376480	Move compilation unit
+1404680719101	Rename compilation unit 'CodeFarmBackEnd.java'
+1404680745786	Rename type 'CodeFarmInterface'
+1404682617139	Delete element
+1404682662803	Delete element
